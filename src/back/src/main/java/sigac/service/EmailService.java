@@ -84,7 +84,13 @@ public class EmailService {
               <tr>
                 <td style="padding:32px 28px 24px;">
                   <p style="margin:0 0 6px;color:#64748b;font-size:13px;">Prezado(a) morador(a),</p>
-                  <p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.55;">Informamos que está programada a seguinte manutenção em seu condomínio.</p>
+                  <p style="margin:0 0 20px;color:#475569;font-size:15px;line-height:1.55;">Informamos que está programada a seguinte manutenção em seu condomínio.</p>
+                  <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;background:linear-gradient(135deg,#eff6ff 0%%,#dbeafe 100%%);border-radius:14px;border:2px solid #3b82f6;border-left-width:6px;">
+                    <tr><td style="padding:18px 22px;">
+                      <p style="margin:0 0 8px;color:#1d4ed8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">O que será realizado</p>
+                      <p style="margin:0;color:#0f172a;font-size:17px;font-weight:600;line-height:1.5;">%s</p>
+                    </td></tr>
+                  </table>
                   <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:linear-gradient(180deg,#f8fafc 0%%,#f1f5f9 100%%);border-radius:14px;border:1px solid #e2e8f0;">
                     <tr><td style="padding:20px 22px;">
                       <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="font-size:14px;">
@@ -99,12 +105,6 @@ public class EmailService {
                         </tr>
                         <tr>
                           <td style="padding:0 0 18px;"><span style="display:inline-block;background:#0f172a;color:#fff;padding:8px 14px;border-radius:10px;font-size:14px;font-weight:600;">%s</span></td>
-                        </tr>
-                        <tr>
-                          <td style="padding:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Descrição</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:0 0 18px;color:#0f172a;font-size:15px;line-height:1.5;">%s</td>
                         </tr>
                         <tr>
                           <td style="padding:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Tipo</td>
@@ -127,9 +127,9 @@ public class EmailService {
             </html>
             """
                 .formatted(
+                        escapeHtml(manutencao.getDescricao()),
                         escapeHtml(nomeCondominio),
                         dataFormatada,
-                        escapeHtml(manutencao.getDescricao()),
                         badgeTipoCores,
                         tipo,
                         prestadorLinha,
