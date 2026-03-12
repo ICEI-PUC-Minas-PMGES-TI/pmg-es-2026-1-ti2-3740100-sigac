@@ -18,8 +18,15 @@ export async function api<T>(
 
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || res.statusText || 'Erro na requisição');
+    const data = (await res.json().catch(() => ({}))) as { message?: string };
+    const msg = data?.message;
+    // Mensagens claras para o usuário (evitar "Forbidden", "Unauthorized", etc.)
+    if (msg && !/forbidden|unauthorized/i.test(msg)) throw new Error(msg);
+    if (res.status === 401) throw new Error('Sessão expirada ou acesso negado. Faça login novamente.');
+    if (res.status === 403) throw new Error('Você não tem permissão para esta ação.');
+    if (res.status === 404) throw new Error('Registro não encontrado.');
+    if (res.status >= 500) throw new Error('Erro no servidor. Tente novamente em alguns instantes.');
+    throw new Error('Algo deu errado. Tente novamente.');
   }
   if (res.status === 204) return undefined as T;
   return res.json();

@@ -3,10 +3,12 @@ spring:
     name: sigac-api
 
   datasource:
-    url: jdbc:h2:mem:sigac;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=TRUE
+    # H2 em arquivo: dados persistem entre reinícios (pasta data/ na raiz do back)
+    url: jdbc:h2:file:./data/sigac;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=TRUE;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
     username: sa
     password:
+  # Para usar apenas em memória (dados perdidos ao parar): jdbc:h2:mem:sigac;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=TRUE
   # Para MySQL em produção, descomente e ajuste:
   # url: jdbc:mysql://localhost:3306/sigac?useUnicode=true&characterEncoding=utf8
   # username: sigac
@@ -26,6 +28,7 @@ spring:
     console:
       enabled: true
       path: /h2-console
+  # Banco em arquivo: ./data/sigac.mv.db (criado ao subir o back a partir de src/back)
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -52,4 +55,9 @@ sigac:
     secret: ${JWT_SECRET:SIGAC-JWT-Secret-Key-Min-256-Bits-For-HS256-Encoding}
     expiration-ms: 86400000  # 24h
   cors:
-    allowed-origins: http://localhost:3000,http://127.0.0.1:3000
+    # Inclui 3001 para quando o Next.js subir nessa porta (ex.: 3000 em uso)
+    allowed-origins: http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001
+  admin:
+    # Configuração opcional de usuário administrador inicial (não expõe credenciais no código).
+    email: ${SIGAC_ADMIN_EMAIL:}
+    password: ${SIGAC_ADMIN_PASSWORD:}

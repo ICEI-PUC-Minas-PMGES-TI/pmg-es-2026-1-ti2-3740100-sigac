@@ -90,7 +90,7 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
         </div>
       </aside>
       <div className="flex-1 flex flex-col min-w-0 ml-56 min-h-screen">
-        <header className="h-14 shrink-0 bg-white border-b border-sigac-border flex items-center px-6 gap-4">
+        <header className="h-14 shrink-0 bg-white/95 backdrop-blur border-b border-sigac-border flex items-center px-6 gap-4 shadow-sm">
           <Link href={`/gestor?condominioId=${cid}`} className="flex items-center text-sigac-nav shrink-0">
             <Logo className="h-8 w-auto" />
           </Link>
@@ -103,7 +103,7 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
           </div>
           <span className="text-sm text-slate-600 truncate max-w-[200px] shrink-0">{user.email}</span>
         </header>
-        <main className="flex-1 overflow-auto p-6 bg-sigac-bg">{children}</main>
+        <main className="flex-1 overflow-auto p-6 bg-transparent">{children}</main>
       </div>
     </div>
   );

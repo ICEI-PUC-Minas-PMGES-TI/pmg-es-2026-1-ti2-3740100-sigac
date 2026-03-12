@@ -80,9 +80,6 @@ export default function LoginPage() {
             {submitting ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
-        <p className="text-center text-slate-500 text-sm mt-4">
-          Admin padrão: admin@sigac.com / admin123
-        </p>
       </div>
     </div>
   );

@@ -37,10 +37,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const data = await api<AuthResponse>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+    // Login sem enviar token (evita 403 por token antigo/inválido)
+    const base = typeof window !== 'undefined' ? '/api-back' : 'http://localhost:8080';
+    let res: Response;
+    try {
+      res = await fetch(`${base}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+    } catch {
+      throw new Error('Não foi possível conectar. Verifique sua internet e tente novamente.');
+    }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { message?: string };
+      const msg = err?.message;
+      // Mensagens claras para o usuário (não mostrar "Forbidden", "Unauthorized", etc.)
+      if (msg && !/forbidden|unauthorized/i.test(msg)) {
+        throw new Error(msg);
+      }
+      if (res.status === 401) throw new Error('E-mail ou senha incorretos. Verifique e tente novamente.');
+      if (res.status === 403) throw new Error('Acesso negado. Verifique seu e-mail e senha.');
+      if (res.status >= 500) throw new Error('Erro no servidor. Tente novamente em alguns instantes.');
+      throw new Error('Não foi possível entrar. Tente novamente.');
+    }
+    const data: AuthResponse = await res.json();
     localStorage.setItem('sigac_token', data.token);
     localStorage.setItem('sigac_user', JSON.stringify(data));
     setUser(data);

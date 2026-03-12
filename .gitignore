@@ -84,6 +84,9 @@ coverage/
 .jacoco/
 site/
 
+# Banco de dados local (H2 em arquivo)
+data/
+
 # Outros
 *.bak
 *.orig

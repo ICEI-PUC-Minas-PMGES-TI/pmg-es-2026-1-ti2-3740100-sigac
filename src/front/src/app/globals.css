@@ -11,20 +11,22 @@
 }
 
 body {
-  @apply bg-sigac-bg text-slate-800 antialiased;
+  @apply text-slate-800 antialiased;
+  background: linear-gradient(160deg, #f8fafc 0%, #e0e7ff 35%, #f1f5f9 100%);
+  min-height: 100vh;
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-sigac-accent hover:bg-sigac-accent-hover text-white font-medium py-2 px-4 rounded-lg transition shadow-sm;
+    @apply bg-sigac-accent hover:bg-sigac-accent-hover text-white font-medium py-2 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg;
   }
   .btn-secondary {
-    @apply bg-white border border-slate-200 hover:bg-slate-50 text-sigac-nav font-medium py-2 px-4 rounded-lg transition;
+    @apply bg-white border border-slate-200 hover:bg-slate-50 text-sigac-nav font-medium py-2 px-4 rounded-xl transition-all duration-200;
   }
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-sigac-border p-6;
+    @apply bg-white rounded-2xl shadow-md border border-white/80 p-6 transition-all duration-300 hover:shadow-lg;
   }
   .input {
-    @apply w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sigac-accent focus:border-sigac-accent outline-none;
+    @apply w-full border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-sigac-accent focus:border-sigac-accent outline-none transition-shadow;
   }
 }
