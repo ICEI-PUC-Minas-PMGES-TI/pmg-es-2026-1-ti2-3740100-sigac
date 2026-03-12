@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sigac-nav: #1b3266;
+  --sigac-accent: #2f6ce6;
+  --sigac-bg: #f1f5f9;
+  --sigac-card: #ffffff;
+  --sigac-border: #e2e8f0;
+}
+
+body {
+  @apply bg-sigac-bg text-slate-800 antialiased;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-sigac-accent hover:bg-sigac-accent-hover text-white font-medium py-2 px-4 rounded-lg transition shadow-sm;
+  }
+  .btn-secondary {
+    @apply bg-white border border-slate-200 hover:bg-slate-50 text-sigac-nav font-medium py-2 px-4 rounded-lg transition;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-sigac-border p-6;
+  }
+  .input {
+    @apply w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sigac-accent focus:border-sigac-accent outline-none;
+  }
+}

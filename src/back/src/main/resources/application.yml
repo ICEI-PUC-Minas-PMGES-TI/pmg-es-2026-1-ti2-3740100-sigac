@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: sigac-api
+
+  datasource:
+    url: jdbc:h2:mem:sigac;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  # Para MySQL em produção, descomente e ajuste:
+  # url: jdbc:mysql://localhost:3306/sigac?useUnicode=true&characterEncoding=utf8
+  # username: sigac
+  # password: sigac
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+    open-in-view: false
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:sigacalertas@gmail.com}
+    password: ${MAIL_PASSWORD:tkdbamofbbpkohrs}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: 8080
+  # context-path removido para evitar 403 no login; front faz rewrite para /api-back -> :8080
+  # servlet:
+  #   context-path: /api
+
+sigac:
+  mail:
+    from: ${MAIL_FROM:sigacalertas@gmail.com}
+  jwt:
+    secret: ${JWT_SECRET:SIGAC-JWT-Secret-Key-Min-256-Bits-For-HS256-Encoding}
+    expiration-ms: 86400000  # 24h
+  cors:
+    allowed-origins: http://localhost:3000,http://127.0.0.1:3000

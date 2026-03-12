@@ -1,0 +1,116 @@
+package sigac.service;
+
+import sigac.domain.Manutencao;
+import sigac.domain.TipoManutencao;
+import sigac.repository.InquilinoRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class EmailService {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+    private static final DateTimeFormatter DATA_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    private final JavaMailSender mailSender;
+    private final InquilinoRepository inquilinoRepository;
+    private final String fromAddress;
+
+    public EmailService(JavaMailSender mailSender, InquilinoRepository inquilinoRepository,
+                        @Value("${sigac.mail.from:sigacalertas@gmail.com}") String fromAddress) {
+        this.mailSender = mailSender;
+        this.inquilinoRepository = inquilinoRepository;
+        this.fromAddress = fromAddress;
+    }
+
+    /**
+     * Envia e-mail em HTML para todos os inquilinos do condomínio informando a manutenção programada.
+     * Data em formato dd/MM/yyyy. Instruções/dicas aparecem no corpo quando preenchidas.
+     */
+    @Async
+    public void enviarNotificacaoManutencao(Manutencao manutencao, String nomeCondominio) {
+        List<String> emails = inquilinoRepository.findByCondominioId(manutencao.getCondominio().getId()).stream()
+                .map(i -> i.getEmail())
+                .collect(Collectors.toList());
+        if (emails.isEmpty()) {
+            log.info("Nenhum inquilino cadastrado para notificar sobre manutenção {}", manutencao.getId());
+            return;
+        }
+        String tipo = manutencao.getTipo() == TipoManutencao.EMERGENCIAL ? "Emergencial" : "Prevista";
+        String assunto = "SIGAC - Manutenção " + tipo + " no condomínio " + nomeCondominio;
+        String dataFormatada = manutencao.getData().format(DATA_BR);
+        String prestadorLinha = manutencao.getPrestador() != null && !manutencao.getPrestador().isBlank()
+                ? "<tr><td style=\"padding:6px 0;color:#475569;\">Prestador:</td><td style=\"padding:6px 0;\">" + escapeHtml(manutencao.getPrestador()) + "</td></tr>"
+                : "";
+        String instrucoes = manutencao.getInstrucoesEmail() != null && !manutencao.getInstrucoesEmail().isBlank()
+                ? "<p style=\"margin-top:20px;color:#1b3266;font-size:14px;\">" + escapeHtml(manutencao.getInstrucoesEmail()) + "</p>"
+                : "";
+
+        String html = """
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+            <body style="margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f1f5f9;padding:24px;">
+            <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+              <div style="background:#1b3266;color:#fff;padding:20px 24px;">
+                <strong style="font-size:18px;">SIGAC</strong>
+                <span style="font-size:12px;opacity:0.9;"> Sistema de Gestão Administrativa Condominial</span>
+              </div>
+              <div style="padding:24px;">
+                <p style="margin:0 0 20px;color:#334155;">Prezado(a) morador(a),</p>
+                <p style="margin:0 0 20px;color:#475569;">Informamos que está programada a seguinte manutenção:</p>
+                <table style="width:100%%;border-collapse:collapse;">
+                  <tr><td style="padding:6px 0;color:#475569;width:120px;">Condomínio:</td><td style="padding:6px 0;">%s</td></tr>
+                  <tr><td style="padding:6px 0;color:#475569;">Data:</td><td style="padding:6px 0;">%s</td></tr>
+                  <tr><td style="padding:6px 0;color:#475569;">Descrição:</td><td style="padding:6px 0;">%s</td></tr>
+                  <tr><td style="padding:6px 0;color:#475569;">Tipo:</td><td style="padding:6px 0;">%s</td></tr>
+                  %s
+                </table>
+                %s
+                <p style="margin-top:24px;font-size:12px;color:#94a3b8;">Este é um e-mail automático do sistema SIGAC.</p>
+              </div>
+            </div>
+            </body>
+            </html>
+            """
+                .formatted(
+                        escapeHtml(nomeCondominio),
+                        dataFormatada,
+                        escapeHtml(manutencao.getDescricao()),
+                        tipo,
+                        prestadorLinha,
+                        instrucoes
+                );
+
+        try {
+            for (String to : emails) {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setFrom(fromAddress);
+                helper.setTo(to);
+                helper.setSubject(assunto);
+                helper.setText(html, true);
+                mailSender.send(message);
+            }
+            log.info("Notificação de manutenção {} enviada para {} inquilino(s)", manutencao.getId(), emails.size());
+        } catch (MessagingException e) {
+            log.error("Erro ao enviar e-mail de manutenção: {}", e.getMessage());
+        }
+    }
+
+    private static String escapeHtml(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    }
+}
