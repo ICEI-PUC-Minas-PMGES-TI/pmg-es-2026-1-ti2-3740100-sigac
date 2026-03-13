@@ -1,8 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Building2, Plus, UserCog, UserCheck, Pencil, Trash2 } from 'lucide-react';
 import { api, CondominioDTO, UserDTO } from '@/lib/api';
-import { IconEdit, IconTrash } from '@/components/Icons';
+import { LoadingSpinner, TableSkeleton } from '@/components/LoadingSpinner';
+import { ConfirmModal } from '@/components/ConfirmModal';
+import { FormModal } from '@/components/FormModal';
 
 export default function AdminPage() {
   const [condominios, setCondominios] = useState<CondominioDTO[]>([]);
@@ -150,193 +154,279 @@ export default function AdminPage() {
     }
   };
 
-  if (loading) return <div className="text-sigac-accent">Carregando condomínios...</div>;
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-64 skeleton rounded-lg" />
+        <TableSkeleton rows={6} />
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-sigac-nav">Condomínios</h1>
-        <button onClick={() => { setShowFormCond(true); setError(''); }} className="btn-primary">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="space-y-6"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-sigac-nav flex items-center gap-2">
+          <Building2 className="w-8 h-8 text-sigac-accent" />
+          Condomínios
+        </h1>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => { setShowFormCond(true); setError(''); }}
+          className="btn-primary flex items-center gap-2"
+        >
+          <Plus className="w-5 h-5" />
           Novo condomínio
-        </button>
+        </motion.button>
       </div>
 
-      {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg">{error}</div>
-      )}
+      <AnimatePresence mode="wait">
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="toast-error"
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {showFormCond && (
-        <div className="card mb-6">
-          <h2 className="font-semibold text-gray-800 mb-4">Criar condomínio</h2>
-          <form onSubmit={handleCreateCondominio} className="space-y-3 max-w-md">
-            <input className="input" placeholder="Nome" value={formCond.nome} onChange={(e) => setFormCond((f) => ({ ...f, nome: e.target.value }))} required />
-            <input className="input" placeholder="Endereço" value={formCond.endereco} onChange={(e) => setFormCond((f) => ({ ...f, endereco: e.target.value }))} />
-            <input className="input" placeholder="CNPJ" value={formCond.cnpj} onChange={(e) => setFormCond((f) => ({ ...f, cnpj: e.target.value }))} />
-            <div className="flex gap-2">
-              <button type="submit" className="btn-primary" disabled={submitting}>{submitting ? 'Salvando...' : 'Criar'}</button>
-              <button type="button" className="btn-secondary" onClick={() => setShowFormCond(false)}>Cancelar</button>
-            </div>
-          </form>
-        </div>
-      )}
+      <FormModal
+        open={showFormCond}
+        onClose={() => setShowFormCond(false)}
+        title="Criar condomínio"
+        icon={<Building2 className="w-5 h-5 text-sigac-accent" />}
+      >
+        <form onSubmit={handleCreateCondominio} className="space-y-3">
+          <input className="input" placeholder="Nome" value={formCond.nome} onChange={(e) => setFormCond((f) => ({ ...f, nome: e.target.value }))} required />
+          <input className="input" placeholder="Endereço" value={formCond.endereco} onChange={(e) => setFormCond((f) => ({ ...f, endereco: e.target.value }))} />
+          <input className="input" placeholder="CNPJ" value={formCond.cnpj} onChange={(e) => setFormCond((f) => ({ ...f, cnpj: e.target.value }))} />
+          <div className="flex gap-2 pt-2">
+            <button type="submit" className="btn-primary" disabled={submitting}>
+              {submitting ? 'Salvando...' : 'Criar'}
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => setShowFormCond(false)}>Cancelar</button>
+          </div>
+        </form>
+      </FormModal>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="card">
-          <h2 className="font-semibold text-gray-800 mb-3">Lista de condomínios</h2>
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.05 }}
+          className="card"
+        >
+          <h2 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-sigac-accent" />
+            Lista de condomínios
+          </h2>
           <ul className="space-y-2">
-            {condominios.map((c) => (
-              <li
+            {condominios.map((c, i) => (
+              <motion.li
                 key={c.id}
-                className={`p-3 rounded-lg border cursor-pointer ${selectedId === c.id ? 'border-sigac-accent bg-sigac-accent/10' : 'border-sigac-border hover:bg-slate-50'}`}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.03 * i }}
+                className={`p-3 rounded-xl border cursor-pointer transition-all duration-200 ${selectedId === c.id ? 'border-sigac-accent bg-sigac-accent/10 shadow-sm' : 'border-sigac-border hover:bg-slate-50 hover:border-slate-200'}`}
                 onClick={() => setSelectedId(c.id)}
               >
-                <span className="font-medium">{c.nome}</span>
-                {c.endereco && <span className="block text-sm text-gray-500">{c.endereco}</span>}
-              </li>
+                <span className="font-medium text-slate-800">{c.nome}</span>
+                {c.endereco && <span className="block text-sm text-slate-500 mt-0.5">{c.endereco}</span>}
+              </motion.li>
             ))}
           </ul>
-        </div>
+        </motion.div>
 
         {selectedId && (
-          <div className="card">
-            <h2 className="font-semibold text-gray-800 mb-3">Gestores e síndicos</h2>
-            <p className="text-sm text-gray-500 mb-3">Condomínio selecionado: {condominios.find((c) => c.id === selectedId)?.nome}</p>
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="card"
+          >
+            <h2 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+              <UserCog className="w-5 h-5 text-sigac-accent" />
+              Gestores e síndicos
+            </h2>
+            <p className="text-sm text-slate-500 mb-3">
+              Condomínio: <span className="font-medium text-slate-700">{condominios.find((c) => c.id === selectedId)?.nome}</span>
+            </p>
             <div className="flex gap-2 mb-4">
-              <button onClick={() => { setShowFormGestor(true); setShowFormSindico(false); setError(''); }} className="btn-primary text-sm">
-                + Gestor
+              <button
+                onClick={() => { setShowFormGestor(true); setShowFormSindico(false); setError(''); }}
+                className="btn-primary text-sm flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" /> Gestor
               </button>
-              <button onClick={() => { setShowFormSindico(true); setShowFormGestor(false); setError(''); }} className="btn-secondary text-sm">
-                + Síndico
+              <button
+                onClick={() => { setShowFormSindico(true); setShowFormGestor(false); setError(''); }}
+                className="btn-secondary text-sm flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" /> Síndico
               </button>
             </div>
 
-            {showFormGestor && (
-              <form onSubmit={handleCreateGestor} className="space-y-2 p-3 bg-gray-50 rounded-lg mb-3">
-                <input className="input text-sm" placeholder="Nome" value={formUser.nome} onChange={(e) => setFormUser((f) => ({ ...f, nome: e.target.value }))} required />
-                <input type="email" className="input text-sm" placeholder="E-mail" value={formUser.email} onChange={(e) => setFormUser((f) => ({ ...f, email: e.target.value }))} required />
-                <input type="password" className="input text-sm" placeholder="Senha" value={formUser.password} onChange={(e) => setFormUser((f) => ({ ...f, password: e.target.value }))} required />
-                <div className="flex gap-2">
-                  <button type="submit" className="btn-primary text-sm" disabled={submitting}>Criar gestor</button>
-                  <button type="button" className="btn-secondary text-sm" onClick={() => setShowFormGestor(false)}>Cancelar</button>
-                </div>
-              </form>
-            )}
-
-            {showFormSindico && (
-              <form onSubmit={handleCreateSindico} className="space-y-2 p-3 bg-gray-50 rounded-lg mb-3">
-                <input className="input text-sm" placeholder="Nome" value={formUser.nome} onChange={(e) => setFormUser((f) => ({ ...f, nome: e.target.value }))} required />
-                <input type="email" className="input text-sm" placeholder="E-mail" value={formUser.email} onChange={(e) => setFormUser((f) => ({ ...f, email: e.target.value }))} required />
-                <input type="password" className="input text-sm" placeholder="Senha" value={formUser.password} onChange={(e) => setFormUser((f) => ({ ...f, password: e.target.value }))} required />
-                <div className="flex gap-2">
-                  <button type="submit" className="btn-primary text-sm" disabled={submitting}>Criar síndico</button>
-                  <button type="button" className="btn-secondary text-sm" onClick={() => setShowFormSindico(false)}>Cancelar</button>
-                </div>
-              </form>
-            )}
-
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-600">Gestores</p>
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-slate-600 flex items-center gap-1.5">
+                <UserCog className="w-4 h-4" /> Gestores
+              </p>
               {gestores.length === 0 ? (
-                <p className="text-sm text-gray-400">Nenhum gestor</p>
+                <p className="text-sm text-slate-400 pl-5">Nenhum gestor cadastrado.</p>
               ) : (
                 gestores.map((g) => (
-                  <div key={g.id} className="flex items-center justify-between text-sm border-b border-slate-100 py-1">
-                    <span>{g.nome} - {g.email}</span>
+                  <div key={g.id} className="flex items-center justify-between text-sm border-b border-slate-100 py-2 pl-5">
+                    <span className="text-slate-700">{g.nome} — {g.email}</span>
                     <div className="flex items-center gap-1">
-                      <button type="button" className="p-1.5 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors" onClick={() => startEditUser('GESTOR', g)} title="Editar" aria-label="Editar">
-                        <IconEdit className="w-4 h-4" />
-                      </button>
-                      <button type="button" className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors" onClick={() => setDeletingUser({ tipo: 'GESTOR', user: g })} title="Remover" aria-label="Remover">
-                        <IconTrash className="w-4 h-4" />
-                      </button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors"
+                        onClick={() => startEditUser('GESTOR', g)}
+                        title="Editar"
+                        aria-label="Editar"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                        onClick={() => setDeletingUser({ tipo: 'GESTOR', user: g })}
+                        title="Remover"
+                        aria-label="Remover"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </motion.button>
                     </div>
                   </div>
                 ))
               )}
-              <p className="text-sm font-medium text-gray-600 mt-2">Síndicos</p>
+              <p className="text-sm font-medium text-slate-600 mt-3 flex items-center gap-1.5">
+                <UserCheck className="w-4 h-4" /> Síndicos
+              </p>
               {sindicos.length === 0 ? (
-                <p className="text-sm text-gray-400">Nenhum síndico</p>
+                <p className="text-sm text-slate-400 pl-5">Nenhum síndico cadastrado.</p>
               ) : (
                 sindicos.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between text-sm border-b border-slate-100 py-1">
-                    <span>{s.nome} - {s.email}</span>
+                  <div key={s.id} className="flex items-center justify-between text-sm border-b border-slate-100 py-2 pl-5">
+                    <span className="text-slate-700">{s.nome} — {s.email}</span>
                     <div className="flex items-center gap-1">
-                      <button type="button" className="p-1.5 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors" onClick={() => startEditUser('SINDICO', s)} title="Editar" aria-label="Editar">
-                        <IconEdit className="w-4 h-4" />
-                      </button>
-                      <button type="button" className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors" onClick={() => setDeletingUser({ tipo: 'SINDICO', user: s })} title="Remover" aria-label="Remover">
-                        <IconTrash className="w-4 h-4" />
-                      </button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors"
+                        onClick={() => startEditUser('SINDICO', s)}
+                        title="Editar"
+                        aria-label="Editar"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                        onClick={() => setDeletingUser({ tipo: 'SINDICO', user: s })}
+                        title="Remover"
+                        aria-label="Remover"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </motion.button>
                     </div>
                   </div>
                 ))
               )}
             </div>
-            {editing && (
-              <div className="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <h3 className="text-sm font-semibold text-sigac-nav mb-2">
-                  Editar {editing.tipo === 'GESTOR' ? 'gestor' : 'síndico'}
-                </h3>
-                <form onSubmit={handleUpdateUser} className="space-y-2">
-                  <input
-                    className="input text-sm"
-                    placeholder="Nome"
-                    value={editForm.nome}
-                    onChange={(e) => setEditForm((f) => ({ ...f, nome: e.target.value }))}
-                    required
-                  />
-                  <input
-                    type="email"
-                    className="input text-sm"
-                    placeholder="E-mail"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
-                    required
-                  />
-                  <div>
-                    <label className="text-xs text-slate-500 block mb-0.5">Nova senha (opcional)</label>
-                    <input
-                      type="text"
-                      className="input text-sm"
-                      placeholder="Deixe em branco para não alterar"
-                      value={editForm.novaSenha}
-                      onChange={(e) => setEditForm((f) => ({ ...f, novaSenha: e.target.value }))}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button type="submit" className="btn-primary text-sm" disabled={submitting}>
-                      {submitting ? 'Salvando...' : 'Salvar alterações'}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary text-sm"
-                      onClick={() => setEditing(null)}
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-          </div>
+
+          </motion.div>
         )}
       </div>
 
-      {deletingUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6">
-            <p className="text-slate-800 font-medium mb-4">
-              Excluir este {deletingUser.tipo === 'GESTOR' ? 'gestor' : 'síndico'}? Esta ação não pode ser desfeita.
-            </p>
-            <div className="flex gap-2 justify-end">
-              <button type="button" className="btn-secondary" onClick={() => setDeletingUser(null)}>Cancelar</button>
-              <button type="button" className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg" disabled={submitting} onClick={() => handleDeleteUser(deletingUser.tipo, deletingUser.user)}>
-                {submitting ? 'Excluindo...' : 'Excluir'}
-              </button>
-            </div>
+      <FormModal
+        open={showFormGestor}
+        onClose={() => setShowFormGestor(false)}
+        title="Novo gestor"
+        icon={<UserCog className="w-5 h-5 text-sigac-accent" />}
+      >
+        <form onSubmit={handleCreateGestor} className="space-y-3">
+          <input className="input" placeholder="Nome" value={formUser.nome} onChange={(e) => setFormUser((f) => ({ ...f, nome: e.target.value }))} required />
+          <input type="email" className="input" placeholder="E-mail" value={formUser.email} onChange={(e) => setFormUser((f) => ({ ...f, email: e.target.value }))} required />
+          <input type="password" className="input" placeholder="Senha" value={formUser.password} onChange={(e) => setFormUser((f) => ({ ...f, password: e.target.value }))} required />
+          <div className="flex gap-2 pt-1">
+            <button type="submit" className="btn-primary" disabled={submitting}>Criar gestor</button>
+            <button type="button" className="btn-secondary" onClick={() => setShowFormGestor(false)}>Cancelar</button>
           </div>
-        </div>
-      )}
-    </div>
+        </form>
+      </FormModal>
+
+      <FormModal
+        open={showFormSindico}
+        onClose={() => setShowFormSindico(false)}
+        title="Novo síndico"
+        icon={<UserCheck className="w-5 h-5 text-sigac-accent" />}
+      >
+        <form onSubmit={handleCreateSindico} className="space-y-3">
+          <input className="input" placeholder="Nome" value={formUser.nome} onChange={(e) => setFormUser((f) => ({ ...f, nome: e.target.value }))} required />
+          <input type="email" className="input" placeholder="E-mail" value={formUser.email} onChange={(e) => setFormUser((f) => ({ ...f, email: e.target.value }))} required />
+          <input type="password" className="input" placeholder="Senha" value={formUser.password} onChange={(e) => setFormUser((f) => ({ ...f, password: e.target.value }))} required />
+          <div className="flex gap-2 pt-1">
+            <button type="submit" className="btn-primary" disabled={submitting}>Criar síndico</button>
+            <button type="button" className="btn-secondary" onClick={() => setShowFormSindico(false)}>Cancelar</button>
+          </div>
+        </form>
+      </FormModal>
+
+      <FormModal
+        open={editing !== null}
+        onClose={() => setEditing(null)}
+        title={editing ? `Editar ${editing.tipo === 'GESTOR' ? 'gestor' : 'síndico'}` : ''}
+        icon={<Pencil className="w-5 h-5 text-sigac-accent" />}
+      >
+        {editing && (
+          <form onSubmit={handleUpdateUser} className="space-y-3">
+            <input className="input" placeholder="Nome" value={editForm.nome} onChange={(e) => setEditForm((f) => ({ ...f, nome: e.target.value }))} required />
+            <input type="email" className="input" placeholder="E-mail" value={editForm.email} onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))} required />
+            <div>
+              <label className="text-sm text-slate-600 block mb-1">Nova senha (opcional)</label>
+              <input type="text" className="input" placeholder="Deixe em branco para não alterar" value={editForm.novaSenha} onChange={(e) => setEditForm((f) => ({ ...f, novaSenha: e.target.value }))} />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button type="submit" className="btn-primary" disabled={submitting}>
+                {submitting ? 'Salvando...' : 'Salvar alterações'}
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancelar</button>
+            </div>
+          </form>
+        )}
+      </FormModal>
+
+      <ConfirmModal
+        open={deletingUser !== null}
+        onClose={() => setDeletingUser(null)}
+        onConfirm={async () => { if (deletingUser) await handleDeleteUser(deletingUser.tipo, deletingUser.user); }}
+        title={deletingUser ? `Remover ${deletingUser.tipo === 'GESTOR' ? 'gestor' : 'síndico'}?` : ''}
+        description={
+          deletingUser
+            ? `${deletingUser.user.nome} (${deletingUser.user.email}) será removido do condomínio. Esta ação não pode ser desfeita.`
+            : ''
+        }
+        confirmLabel="Sim, remover"
+        cancelLabel="Cancelar"
+        variant="danger"
+        loading={submitting}
+        loadingLabel="Removendo..."
+      />
+    </motion.div>
   );
 }

@@ -3,8 +3,11 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { api, DashboardGastosDTO, FuncionarioDTO, ManutencaoDTO, GastoProdutoDTO } from '@/lib/api';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { DashboardSkeleton } from '@/components/LoadingSpinner';
+import { FileDown } from 'lucide-react';
 
 const COLORS = ['#1b3266', '#2f6ce6', '#0ea5e9', '#10b981', '#f59e0b'];
 
@@ -173,12 +176,7 @@ export default function GestorDashboardPage() {
     return <div className="card">Selecione um condomínio.</div>;
   }
 
-  if (loading) return (
-    <div className="flex items-center gap-3 text-sigac-nav">
-      <span className="inline-block w-5 h-5 border-2 border-sigac-accent border-t-transparent rounded-full animate-spin" />
-      Carregando dashboard...
-    </div>
-  );
+  if (loading) return <DashboardSkeleton />;
 
   // Usar listas do dashboard se vierem preenchidas; senão usar as listas dos endpoints (com filtro de mês onde couber)
   const funcionarios = (data?.funcionarios && data.funcionarios.length > 0)
@@ -197,7 +195,7 @@ export default function GestorDashboardPage() {
   const chartData = data?.itens?.map((i) => ({ name: i.categoria, value: i.valor })) ?? [];
 
   return (
-    <div className="animate-fade-in">
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-6">
       <h1 className="text-2xl font-bold text-sigac-nav mb-1">Dashboard e relatório mensal</h1>
       <p className="text-sm text-slate-600 mb-6">
         Use os indicadores e tabelas abaixo para acompanhar gastos e montar relatórios para o financeiro.
@@ -221,14 +219,17 @@ export default function GestorDashboardPage() {
             </select>
           </label>
         </div>
-        <button
+        <motion.button
           type="button"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={handleExportarPdf}
           disabled={exportando || !data}
-          className="btn-primary text-sm px-4 py-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="btn-primary text-sm px-4 py-2 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
         >
+          <FileDown className="w-4 h-4" />
           {exportando ? 'Gerando PDF...' : 'Exportar relatório (PDF)'}
-        </button>
+        </motion.button>
       </div>
 
       {erroExport && (
@@ -408,6 +409,6 @@ Detalhes disponíveis nas tabelas acima (funcionários, manutenções do mês e 
           </section>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

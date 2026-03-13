@@ -2,8 +2,12 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { UserPlus, Pencil, Trash2, Users } from 'lucide-react';
 import { api, FuncionarioDTO } from '@/lib/api';
-import { IconEdit, IconTrash } from '@/components/Icons';
+import { TableSkeleton } from '@/components/LoadingSpinner';
+import { ConfirmModal } from '@/components/ConfirmModal';
+import { FormModal } from '@/components/FormModal';
 
 export default function FuncionariosPage() {
   const searchParams = useSearchParams();
@@ -15,6 +19,7 @@ export default function FuncionariosPage() {
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const load = () => {
     if (!condominioId) return;
@@ -60,12 +65,15 @@ export default function FuncionariosPage() {
   const handleDelete = async (id: number) => {
     if (!condominioId) return;
     setError('');
+    setSubmitting(true);
     try {
       await api(`/condominios/${condominioId}/funcionarios/${id}`, { method: 'DELETE' });
       setDeletingId(null);
       load();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro ao excluir');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -85,84 +93,126 @@ export default function FuncionariosPage() {
     setShowForm(true);
   };
 
+  const deletingItem = list.find((f) => f.id === deletingId);
+
   if (!condominioId) return <div className="card">Selecione um condomínio.</div>;
-  if (loading) return <div>Carregando...</div>;
+  if (loading) return <TableSkeleton rows={6} />;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-teal-800">Funcionários</h1>
-        <button onClick={() => aoAbrirForm()} className="btn-primary">
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-sigac-nav flex items-center gap-2">
+          <Users className="w-8 h-8 text-sigac-accent" />
+          Funcionários
+        </h1>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => aoAbrirForm()}
+          className="btn-primary flex items-center gap-2"
+        >
+          <UserPlus className="w-5 h-5" />
           Novo funcionário
-        </button>
+        </motion.button>
       </div>
-      {error && <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg">{error}</div>}
-      {showForm && (
-        <div className="card mb-6">
-          <form onSubmit={handleSubmit} className="space-y-3 max-w-md">
-            <input className="input" placeholder="Nome" value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} required />
-            <select className="input" value={form.funcao} onChange={(e) => setForm((prev) => ({ ...prev, funcao: e.target.value, funcaoOutro: e.target.value === 'Outro' ? prev.funcaoOutro : '' }))}>
-              {funcoes.map((f) => <option key={f} value={f}>{f}</option>)}
-            </select>
-            {isOutro && (
-              <input
-                className="input"
-                placeholder="Qual a função? (ex.: Pintor, Encanador)"
-                value={form.funcaoOutro}
-                onChange={(e) => setForm((f) => ({ ...f, funcaoOutro: e.target.value }))}
-              />
-            )}
-            <input type="number" step="0.01" min="0" className="input" placeholder="Valor mensal (R$)" value={form.valorMensal} onChange={(e) => setForm((f) => ({ ...f, valorMensal: e.target.value }))} required />
-            <div className="flex gap-2">
-              <button type="submit" className="btn-primary">{editingId ? 'Salvar' : 'Cadastrar'}</button>
-              <button type="button" className="btn-secondary" onClick={() => { setShowForm(false); setEditingId(null); setForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' }); }}>Cancelar</button>
-            </div>
-          </form>
-        </div>
-      )}
-      <div className="card overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-teal-50 border-b border-teal-100">
-            <tr>
-              <th className="text-left p-3 text-teal-800">Nome</th>
-              <th className="text-left p-3 text-teal-800">Função</th>
-              <th className="text-right p-3 text-teal-800">Valor mensal</th>
-              <th className="w-40"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.map((f) => (
-              <tr key={f.id} className="border-b border-gray-100 hover:bg-gray-50">
-                <td className="p-3">{f.nome}</td>
-                <td className="p-3">{f.funcao}</td>
-                <td className="p-3 text-right">R$ {Number(f.valorMensal).toFixed(2).replace('.', ',')}</td>
-                <td className="p-2">
-                  <div className="flex items-center gap-1">
-                    <button type="button" className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors" onClick={() => aoAbrirForm(f)} title="Editar" aria-label="Editar">
-                      <IconEdit className="w-5 h-5" />
-                    </button>
-                    <button type="button" className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors" onClick={() => setDeletingId(f.id)} title="Excluir" aria-label="Excluir">
-                      <IconTrash className="w-5 h-5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {list.length === 0 && <p className="p-6 text-gray-500 text-center">Nenhum funcionário cadastrado.</p>}
-      </div>
-      {deletingId !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6">
-            <p className="text-slate-800 font-medium mb-4">Excluir este funcionário? Esta ação não pode ser desfeita.</p>
-            <div className="flex gap-2 justify-end">
-              <button type="button" className="btn-secondary" onClick={() => setDeletingId(null)}>Cancelar</button>
-              <button type="button" className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg" onClick={() => handleDelete(deletingId)}>Excluir</button>
-            </div>
+
+      <AnimatePresence mode="wait">
+        {error && (
+          <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="toast-error">
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <FormModal
+        open={showForm}
+        onClose={() => { setShowForm(false); setEditingId(null); setForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' }); }}
+        title={editingId ? 'Editar funcionário' : 'Novo funcionário'}
+        icon={<UserPlus className="w-5 h-5 text-sigac-accent" />}
+      >
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input className="input" placeholder="Nome" value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} required />
+          <select className="input" value={form.funcao} onChange={(e) => setForm((prev) => ({ ...prev, funcao: e.target.value, funcaoOutro: e.target.value === 'Outro' ? prev.funcaoOutro : '' }))}>
+            {funcoes.map((f) => <option key={f} value={f}>{f}</option>)}
+          </select>
+          {isOutro && (
+            <input
+              className="input"
+              placeholder="Qual a função? (ex.: Pintor, Encanador)"
+              value={form.funcaoOutro}
+              onChange={(e) => setForm((f) => ({ ...f, funcaoOutro: e.target.value }))}
+            />
+          )}
+          <input type="number" step="0.01" min="0" className="input" placeholder="Valor mensal (R$)" value={form.valorMensal} onChange={(e) => setForm((f) => ({ ...f, valorMensal: e.target.value }))} required />
+          <div className="flex gap-2 pt-2">
+            <button type="submit" className="btn-primary">{editingId ? 'Salvar' : 'Cadastrar'}</button>
+            <button type="button" className="btn-secondary" onClick={() => { setShowForm(false); setEditingId(null); setForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' }); }}>Cancelar</button>
           </div>
+        </form>
+      </FormModal>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="card overflow-hidden p-0 rounded-2xl"
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gradient-to-r from-sigac-accent/10 to-sigac-accent/5 text-sigac-nav border-b border-slate-200">
+                <th className="text-left p-3 font-semibold rounded-tl-2xl">Nome</th>
+                <th className="text-left p-3 font-semibold">Função</th>
+                <th className="text-right p-3 font-semibold">Valor mensal</th>
+                <th className="w-28 p-3 font-semibold rounded-tr-2xl text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((f, i) => (
+                <motion.tr
+                  key={f.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.02 * i }}
+                  className={`border-b border-slate-100 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-sigac-accent/5`}
+                >
+                  <td className="p-3 font-medium text-slate-800">{f.nome}</td>
+                  <td className="p-3 text-slate-600">{f.funcao}</td>
+                  <td className="p-3 text-right font-medium text-sigac-nav">R$ {Number(f.valorMensal).toFixed(2).replace('.', ',')}</td>
+                  <td className="p-2">
+                    <div className="flex items-center justify-end gap-1">
+                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors" onClick={() => aoAbrirForm(f)} title="Editar" aria-label="Editar">
+                        <Pencil className="w-5 h-5" />
+                      </motion.button>
+                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors" onClick={() => setDeletingId(f.id)} title="Excluir" aria-label="Excluir">
+                        <Trash2 className="w-5 h-5" />
+                      </motion.button>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
-    </div>
+        {list.length === 0 && (
+          <p className="p-8 text-slate-500 text-center">
+            Nenhum funcionário cadastrado. Clique em <strong>Novo funcionário</strong> para começar.
+          </p>
+        )}
+      </motion.div>
+
+      <ConfirmModal
+        open={deletingId !== null}
+        onClose={() => setDeletingId(null)}
+        onConfirm={async () => { if (deletingId !== null) await handleDelete(deletingId); }}
+        title="Excluir funcionário?"
+        description={deletingItem ? `Ao excluir "${deletingItem.nome}" (${deletingItem.funcao}), o registro será removido permanentemente. Esta ação não pode ser desfeita.` : ''}
+        confirmLabel="Sim, excluir"
+        cancelLabel="Cancelar"
+        variant="danger"
+        loading={submitting}
+        loadingLabel="Excluindo..."
+      />
+    </motion.div>
   );
 }

@@ -2,8 +2,10 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { api, DashboardGastosDTO, FuncionarioDTO, ManutencaoDTO, GastoProdutoDTO } from '@/lib/api';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { DashboardSkeleton } from '@/components/LoadingSpinner';
 
 const COLORS = ['#1b3266', '#2f6ce6', '#0ea5e9', '#10b981', '#f59e0b'];
 
@@ -54,12 +56,7 @@ export default function SindicoDashboardPage() {
   }, [condominioId, ano, mes]);
 
   if (!condominioId) return <div className="card">Selecione um condomínio.</div>;
-  if (loading) return (
-    <div className="flex items-center gap-3 text-sigac-nav">
-      <span className="inline-block w-5 h-5 border-2 border-sigac-accent border-t-transparent rounded-full animate-spin" />
-      Carregando dashboard...
-    </div>
-  );
+  if (loading) return <DashboardSkeleton />;
 
   const funcionarios = (data?.funcionarios && data.funcionarios.length > 0)
     ? data.funcionarios
@@ -77,7 +74,7 @@ export default function SindicoDashboardPage() {
   const chartData = data?.itens?.map((i) => ({ name: i.categoria, value: i.valor })) ?? [];
 
   return (
-    <div className="animate-fade-in">
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-6">
       <h1 className="text-2xl font-bold text-sigac-nav mb-1">Visão de gastos (somente leitura)</h1>
       <p className="text-sm text-slate-600 mb-6">Indicadores e detalhes para acompanhamento e relatório ao financeiro.</p>
       <div className="flex flex-wrap gap-4 mb-6">
@@ -260,6 +257,6 @@ Detalhes nas tabelas acima.`}
           </section>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

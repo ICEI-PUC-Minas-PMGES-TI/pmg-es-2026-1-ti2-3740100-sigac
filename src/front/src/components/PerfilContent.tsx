@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, User, Mail, Shield, Lock, KeyRound, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 
@@ -52,95 +54,182 @@ export function PerfilContent({ backHref }: { backHref: string }) {
   if (!user) return null;
 
   return (
-    <div className="animate-fade-in max-w-2xl">
-      <Link href={backHref} className="text-sm text-sigac-accent hover:underline mb-4 inline-block">
-        ← Voltar
-      </Link>
-      <h1 className="text-2xl font-bold text-sigac-nav mb-1">Meu perfil</h1>
-      <p className="text-sm text-slate-600 mb-6">
-        Dados da sua conta. Você pode alterar sua senha abaixo.
-      </p>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="w-full max-w-2xl mx-auto px-4 sm:px-0 flex flex-col items-center"
+    >
+      <div className="w-full space-y-6">
+        <Link
+          href={backHref}
+          className="inline-flex items-center gap-2 text-sm font-medium text-sigac-accent hover:text-sigac-accent-hover transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar
+        </Link>
 
-      <div className="card mb-6">
-        <h2 className="text-lg font-semibold text-sigac-nav mb-3">Dados da conta</h2>
-        <dl className="grid gap-2 text-sm">
-          <div>
-            <dt className="text-slate-500 font-medium">Nome</dt>
-            <dd className="text-slate-800">{user.nome || '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-slate-500 font-medium">E-mail</dt>
-            <dd className="text-slate-800">{user.email}</dd>
-          </div>
-          <div>
-            <dt className="text-slate-500 font-medium">Função</dt>
-            <dd className="text-slate-800">{ROLE_LABEL[user.role] ?? user.role}</dd>
-          </div>
-        </dl>
-      </div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-sigac-nav flex items-center justify-center gap-2">
+            <User className="w-8 h-8 text-sigac-accent" />
+            Meu perfil
+          </h1>
+          <p className="text-sm text-slate-600 mt-1">
+            Dados da sua conta. Você pode alterar sua senha abaixo.
+          </p>
+        </div>
 
-      <div className="card">
-        <h2 className="text-lg font-semibold text-sigac-nav mb-3">Alterar senha</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="card"
+        >
+          <h2 className="text-lg font-semibold text-sigac-nav mb-4 flex items-center gap-2">
+            <User className="w-5 h-5 text-sigac-accent" />
+            Dados da conta
+          </h2>
+          <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50/80">
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-sigac-accent/10 text-sigac-accent shrink-0">
+                <User className="w-5 h-5" />
+              </span>
+              <div className="min-w-0">
+                <dt className="text-xs font-medium text-slate-500 uppercase tracking-wide">Nome</dt>
+                <dd className="text-slate-800 font-medium mt-0.5 truncate" title={user.nome || '—'}>{user.nome || '—'}</dd>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50/80">
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-sigac-accent/10 text-sigac-accent shrink-0">
+                <Mail className="w-5 h-5" />
+              </span>
+              <div className="min-w-0">
+                <dt className="text-xs font-medium text-slate-500 uppercase tracking-wide">E-mail</dt>
+                <dd className="text-slate-800 font-medium mt-0.5 truncate" title={user.email}>{user.email}</dd>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50/80">
+              <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-sigac-accent/10 text-sigac-accent shrink-0">
+                <Shield className="w-5 h-5" />
+              </span>
+              <div className="min-w-0">
+                <dt className="text-xs font-medium text-slate-500 uppercase tracking-wide">Função</dt>
+                <dd className="text-slate-800 font-medium mt-0.5">{ROLE_LABEL[user.role] ?? user.role}</dd>
+              </div>
+            </div>
+          </dl>
+        </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="card"
+      >
+        <h2 className="text-lg font-semibold text-sigac-nav mb-2 flex items-center gap-2">
+          <KeyRound className="w-5 h-5 text-sigac-accent" />
+          Alterar senha
+        </h2>
         <p className="text-sm text-slate-600 mb-4">
           Quem criou sua conta definiu uma senha inicial. Você pode trocá-la aqui quando quiser.
         </p>
         <form onSubmit={handleAlterarSenha} className="space-y-4">
-          {erro && (
-            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {erro}
+          <AnimatePresence mode="wait">
+            {erro && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="toast-error flex items-center gap-2"
+              >
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                {erro}
+              </motion.div>
+            )}
+            {sucesso && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="toast-success flex items-center gap-2"
+              >
+                <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                Senha alterada com sucesso. Use a nova senha no próximo login.
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Senha atual</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="password"
+                className="input pl-10"
+                value={senhaAtual}
+                onChange={(e) => setSenhaAtual(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
             </div>
-          )}
-          {sucesso && (
-            <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-              Senha alterada com sucesso.
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Nova senha</label>
+            <div className="relative">
+              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="password"
+                className="input pl-10"
+                value={novaSenha}
+                onChange={(e) => setNovaSenha(e.target.value)}
+                required
+                minLength={6}
+                autoComplete="new-password"
+              />
             </div>
-          )}
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Senha atual</span>
-            <input
-              type="password"
-              className="input w-full mt-1"
-              value={senhaAtual}
-              onChange={(e) => setSenhaAtual(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Nova senha</span>
-            <input
-              type="password"
-              className="input w-full mt-1"
-              value={novaSenha}
-              onChange={(e) => setNovaSenha(e.target.value)}
-              required
-              minLength={6}
-              autoComplete="new-password"
-            />
-            <p className="text-xs text-slate-500 mt-0.5">Mínimo 6 caracteres.</p>
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Confirmar nova senha</span>
-            <input
-              type="password"
-              className="input w-full mt-1"
-              value={confirmarSenha}
-              onChange={(e) => setConfirmarSenha(e.target.value)}
-              required
-              minLength={6}
-              autoComplete="new-password"
-            />
-          </label>
+            <p className="text-xs text-slate-500 mt-1">Mínimo 6 caracteres.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirmar nova senha</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="password"
+                className="input pl-10"
+                value={confirmarSenha}
+                onChange={(e) => setConfirmarSenha(e.target.value)}
+                required
+                minLength={6}
+                autoComplete="new-password"
+              />
+            </div>
+          </div>
           <div className="flex gap-3 pt-2">
-            <button type="submit" className="btn-primary" disabled={salvando}>
-              {salvando ? 'Salvando...' : 'Alterar senha'}
-            </button>
+            <motion.button
+              type="submit"
+              className="btn-primary flex items-center gap-2"
+              disabled={salvando}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {salvando ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <KeyRound className="w-5 h-5" />
+                  Alterar senha
+                </>
+              )}
+            </motion.button>
             <Link href={backHref} className="btn-secondary">
               Cancelar
             </Link>
           </div>
         </form>
+      </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { Mail, Lock, LogIn } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default function LoginPage() {
   const { user, loading, login } = useAuth();
@@ -36,51 +39,99 @@ export default function LoginPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-sigac-bg">
-        <div className="animate-pulse text-sigac-accent">Carregando...</div>
+        <LoadingSpinner message="Verificando sessão..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-sigac-bg px-4">
-      <div className="w-full max-w-md">
-        <div className="card text-center mb-8 flex flex-col items-center">
-          <Logo className="h-12 w-auto text-sigac-nav mb-3" />
-          <p className="text-slate-600 text-sm">Sistema Integrado de Gestão e Administração Condominial</p>
+    <div className="min-h-screen flex items-center justify-center bg-sigac-bg px-4 py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="w-full max-w-md"
+      >
+        <div className="card text-center mb-8 flex flex-col items-center py-8 px-6">
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+          >
+            <Logo className="h-14 w-auto text-sigac-nav mb-4" />
+          </motion.div>
+          <p className="text-slate-600 text-sm max-w-xs">
+            Sistema Integrado de Gestão e Administração Condominial
+          </p>
         </div>
-        <form onSubmit={handleSubmit} className="card space-y-4">
-          <h2 className="text-lg font-semibold text-sigac-nav">Entrar</h2>
+
+        <motion.form
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.35 }}
+          onSubmit={handleSubmit}
+          className="card space-y-5 py-6 px-6"
+        >
+          <h2 className="text-xl font-semibold text-sigac-nav flex items-center gap-2">
+            <LogIn className="w-5 h-5 text-sigac-accent" />
+            Entrar
+          </h2>
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+            <motion.div
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="toast-error text-sm flex items-center gap-2"
+            >
               {error}
-            </div>
+            </motion.div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-            <input
-              type="email"
-              className="input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="seu@email.com"
-            />
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">E-mail</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="email"
+                className="input pl-10"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="seu@email.com"
+              />
+            </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-            <input
-              type="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Senha</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="password"
+                className="input pl-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+              />
+            </div>
           </div>
-          <button type="submit" className="btn-primary w-full py-2.5" disabled={submitting}>
-            {submitting ? 'Entrando...' : 'Entrar'}
+          <button
+            type="submit"
+            className="btn-primary w-full py-3 flex items-center justify-center gap-2"
+            disabled={submitting}
+          >
+            {submitting ? (
+              <>
+                <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Entrando...
+              </>
+            ) : (
+              <>
+                <LogIn className="w-5 h-5" />
+                Entrar
+              </>
+            )}
           </button>
-        </form>
-      </div>
+        </motion.form>
+      </motion.div>
     </div>
   );
 }
