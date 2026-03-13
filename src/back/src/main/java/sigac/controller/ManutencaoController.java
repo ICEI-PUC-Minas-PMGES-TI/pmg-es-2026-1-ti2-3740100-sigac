@@ -35,8 +35,11 @@ public class ManutencaoController {
     }
 
     @PutMapping("/{id}")
-    public ManutencaoDTO atualizar(@PathVariable Long id, @Valid @RequestBody ManutencaoDTO dto) {
-        return manutencaoService.atualizar(id, dto);
+    public ManutencaoDTO atualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody ManutencaoDTO dto,
+            @RequestParam(required = false, defaultValue = "false") boolean notificar) {
+        return manutencaoService.atualizar(id, dto, notificar);
     }
 
     @DeleteMapping("/{id}")

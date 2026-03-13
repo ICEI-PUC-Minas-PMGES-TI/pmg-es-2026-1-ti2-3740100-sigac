@@ -11,11 +11,11 @@ import sigac.security.UserPrincipal;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -25,13 +25,15 @@ public class AuthService {
     private final SindicoCondominioRepository sindicoCondominioRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository, GestorCondominioRepository gestorCondominioRepository, SindicoCondominioRepository sindicoCondominioRepository, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
+    public AuthService(UserRepository userRepository, GestorCondominioRepository gestorCondominioRepository, SindicoCondominioRepository sindicoCondominioRepository, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.gestorCondominioRepository = gestorCondominioRepository;
         this.sindicoCondominioRepository = sindicoCondominioRepository;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
@@ -66,5 +68,16 @@ public class AuthService {
                     .toList();
         }
         return List.of();
+    }
+
+    @Transactional
+    public void alterarSenha(Long userId, String senhaAtual, String novaSenha) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+        if (!passwordEncoder.matches(senhaAtual, user.getPassword())) {
+            throw new IllegalArgumentException("Senha atual incorreta.");
+        }
+        user.setPassword(passwordEncoder.encode(novaSenha));
+        userRepository.save(user);
     }
 }

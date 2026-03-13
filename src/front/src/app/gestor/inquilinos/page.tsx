@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api, InquilinoDTO } from '@/lib/api';
+import { IconEdit, IconTrash } from '@/components/Icons';
 
 export default function InquilinosPage() {
   const searchParams = useSearchParams();
@@ -101,9 +102,13 @@ export default function InquilinosPage() {
                 <td className="p-3">{i.nome}</td>
                 <td className="p-3">{i.email}</td>
                 <td className="p-2">
-                  <div className="flex gap-2">
-                    <button type="button" className="text-sigac-accent text-sm hover:underline" onClick={() => { setForm({ nome: i.nome, email: i.email }); setEditingId(i.id); setShowForm(true); }}>Editar</button>
-                    <button type="button" className="text-red-600 text-sm hover:underline" onClick={() => setDeletingId(i.id)}>Deletar</button>
+                  <div className="flex items-center gap-1">
+                    <button type="button" className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors" onClick={() => { setForm({ nome: i.nome, email: i.email }); setEditingId(i.id); setShowForm(true); }} title="Editar" aria-label="Editar">
+                      <IconEdit className="w-5 h-5" />
+                    </button>
+                    <button type="button" className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors" onClick={() => setDeletingId(i.id)} title="Remover" aria-label="Remover">
+                      <IconTrash className="w-5 h-5" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -115,10 +120,10 @@ export default function InquilinosPage() {
       {deletingId !== null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-lg max-w-sm w-full p-6">
-            <p className="text-slate-800 font-medium mb-4">Remover este inquilino? Ele deixará de receber e-mails de manutenção.</p>
+            <p className="text-slate-800 font-medium mb-4">Excluir este inquilino? Esta ação não pode ser desfeita.</p>
             <div className="flex gap-2 justify-end">
               <button type="button" className="btn-secondary" onClick={() => setDeletingId(null)}>Cancelar</button>
-              <button type="button" className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg" onClick={() => handleDelete(deletingId)}>Remover</button>
+              <button type="button" className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg" onClick={() => handleDelete(deletingId)}>Excluir</button>
             </div>
           </div>
         </div>

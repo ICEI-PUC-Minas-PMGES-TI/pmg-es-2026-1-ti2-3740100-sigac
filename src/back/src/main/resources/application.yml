@@ -58,6 +58,6 @@ sigac:
     # Inclui 3001 para quando o Next.js subir nessa porta (ex.: 3000 em uso)
     allowed-origins: http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001
   admin:
-    # Configuração opcional de usuário administrador inicial (não expõe credenciais no código).
-    email: ${SIGAC_ADMIN_EMAIL:}
-    password: ${SIGAC_ADMIN_PASSWORD:}
+    # Usuário admin inicial: criado ao subir se o banco estiver vazio. Em produção, sobrescreva com variáveis de ambiente.
+    email: ${SIGAC_ADMIN_EMAIL:admin@sigac.com}
+    password: ${SIGAC_ADMIN_PASSWORD:admin123}

@@ -60,7 +60,7 @@ public class ManutencaoService {
     }
 
     @Transactional
-    public ManutencaoDTO atualizar(Long id, ManutencaoDTO dto) {
+    public ManutencaoDTO atualizar(Long id, ManutencaoDTO dto, boolean notificar) {
         Manutencao m = manutencaoRepository.findById(id).orElseThrow(() -> new NotFoundException("Manutenção não encontrada"));
         if (!acessoService.podeEditarCondominio(m.getCondominio().getId())) throw new ForbiddenException("Sem permissão");
         m.setDescricao(dto.getDescricao());
@@ -70,6 +70,9 @@ public class ManutencaoService {
         m.setPrestador(dto.getPrestador());
         m.setInstrucoesEmail(dto.getInstrucoesEmail());
         m = manutencaoRepository.save(m);
+        if (notificar) {
+            emailService.enviarNotificacaoAlteracaoManutencao(m, m.getCondominio().getNome());
+        }
         return toDTO(m);
     }
 

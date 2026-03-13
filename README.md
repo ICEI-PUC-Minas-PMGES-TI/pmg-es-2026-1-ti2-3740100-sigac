@@ -6,6 +6,7 @@
 
 ```bash
 cd src/back
+mvn clean install
 mvn spring-boot:run
 ```
 

@@ -34,6 +34,8 @@ export default function GestorDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [ano, setAno] = useState(new Date().getFullYear());
   const [mes, setMes] = useState(new Date().getMonth() + 1);
+  const [exportando, setExportando] = useState(false);
+  const [erroExport, setErroExport] = useState<string | null>(null);
 
   useEffect(() => {
     if (!condominioId) return;
@@ -53,6 +55,119 @@ export default function GestorDashboardPage() {
       .catch(() => setData(null))
       .finally(() => setLoading(false));
   }, [condominioId, ano, mes]);
+
+  const handleExportarPdf = async () => {
+    if (!condominioId || !data) return;
+    setExportando(true);
+    setErroExport(null);
+    try {
+      const { jsPDF } = await import('jspdf');
+      const autoTable = (await import('jspdf-autotable')).default;
+
+      const doc = new jsPDF('p', 'mm', 'a4');
+
+      const descricaoPeriodo = `${new Date(ano, mes - 1).toLocaleString('pt-BR', {
+        month: 'long',
+      })}/${ano}`;
+
+      doc.setFontSize(16);
+      doc.setTextColor(27, 50, 102);
+      doc.text('SIGAC - Relatório de gastos do condomínio', 14, 20);
+
+      doc.setFontSize(12);
+      doc.setTextColor(80, 80, 80);
+      doc.text(`Condomínio: ${data.nomeCondominio}`, 14, 30);
+      doc.text(`Período: ${descricaoPeriodo}`, 14, 37);
+      doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 44);
+
+      let posY = 54;
+
+      doc.setFontSize(13);
+      doc.setTextColor(27, 50, 102);
+      doc.text('Resumo do mês', 14, posY);
+      posY += 6;
+
+      doc.setFontSize(11);
+      doc.setTextColor(60, 60, 60);
+      doc.text(`Funcionários: ${fmtMoney(data.totalFuncionarios)}`, 14, posY);
+      posY += 5;
+      doc.text(`Produtos: ${fmtMoney(data.totalProdutos)}`, 14, posY);
+      posY += 5;
+      doc.text(`Manutenções: ${fmtMoney(data.totalManutencoes)}`, 14, posY);
+      posY += 5;
+      doc.setFontSize(12);
+      doc.setTextColor(16, 185, 129);
+      doc.text(`TOTAL DO MÊS: ${fmtMoney(data.totalGeral)}`, 14, posY);
+
+      posY += 12;
+      doc.setFontSize(12);
+      doc.setTextColor(27, 50, 102);
+      doc.text('Funcionários', 14, posY);
+      posY += 6;
+      autoTable(doc, {
+        startY: posY,
+        head: [['Nome', 'Função', 'Valor mensal (R$)']],
+        body: funcionarios.map((f) => [
+          f.nome,
+          f.funcao,
+          fmtMoney(f.valorMensal),
+        ]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [27, 50, 102], textColor: 255 },
+        alternateRowStyles: { fillColor: [245, 248, 255] },
+        margin: { left: 14, right: 14 },
+      });
+
+      let afterFuncY = (doc as any).lastAutoTable.finalY + 10;
+      doc.setFontSize(12);
+      doc.setTextColor(27, 50, 102);
+      doc.text('Manutenções', 14, afterFuncY);
+      afterFuncY += 6;
+      autoTable(doc, {
+        startY: afterFuncY,
+        head: [['Data', 'Descrição', 'Tipo', 'Prestador', 'Valor (R$)']],
+        body: manutencoes.map((m) => [
+          fmtDate(m.data),
+          m.descricao,
+          m.tipo === 'EMERGENCIAL' ? 'Emergencial' : 'Prevista',
+          m.prestador ?? '—',
+          fmtMoney(m.valor),
+        ]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [16, 185, 129], textColor: 255 },
+        alternateRowStyles: { fillColor: [240, 253, 250] },
+        margin: { left: 14, right: 14 },
+      });
+
+      let afterManutY = (doc as any).lastAutoTable.finalY + 10;
+      doc.setFontSize(12);
+      doc.setTextColor(27, 50, 102);
+      doc.text('Gastos', 14, afterManutY);
+      afterManutY += 6;
+      autoTable(doc, {
+        startY: afterManutY,
+        head: [['Data', 'Descrição', 'Loja/Fornecedor', 'Valor (R$)']],
+        body: gastosProdutos.map((g) => [
+          fmtDate(g.data),
+          g.descricao ?? '—',
+          g.lojaFornecedor ?? '—',
+          fmtMoney(g.valor),
+        ]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [14, 165, 233], textColor: 255 },
+        alternateRowStyles: { fillColor: [239, 246, 255] },
+        margin: { left: 14, right: 14 },
+      });
+
+      const nomeArquivoBase = `relatorio-gastos-${data.nomeCondominio.replace(/\s+/g, '-').toLowerCase()}-${ano}-${String(mes).padStart(2, '0')}`;
+
+      doc.save(`${nomeArquivoBase}.pdf`);
+    } catch (err: any) {
+      setErroExport(err?.message || 'Não foi possível gerar o PDF. Tente novamente.');
+    } finally {
+      setExportando(false);
+    }
+  };
 
   if (!condominioId) {
     return <div className="card">Selecione um condomínio.</div>;
@@ -87,24 +202,40 @@ export default function GestorDashboardPage() {
       <p className="text-sm text-slate-600 mb-6">
         Use os indicadores e tabelas abaixo para acompanhar gastos e montar relatórios para o financeiro.
       </p>
-      <div className="flex flex-wrap gap-4 mb-6">
-        <label className="flex items-center gap-2">
-          <span className="text-sm font-medium text-slate-600">Ano</span>
-          <select className="input w-24 bg-white/90" value={ano} onChange={(e) => setAno(Number(e.target.value))}>
-            {[ano - 1, ano, ano + 1].map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-        </label>
-        <label className="flex items-center gap-2">
-          <span className="text-sm font-medium text-slate-600">Mês</span>
-          <select className="input w-36 bg-white/90" value={mes} onChange={(e) => setMes(Number(e.target.value))}>
-            {[1,2,3,4,5,6,7,8,9,10,11,12].map((m) => (
-              <option key={m} value={m}>{new Date(2000, m - 1).toLocaleString('pt-BR', { month: 'long' })}</option>
-            ))}
-          </select>
-        </label>
+      <div className="flex flex-wrap items-end gap-4 mb-6 justify-between">
+        <div className="flex flex-wrap gap-4">
+          <label className="flex items-center gap-2">
+            <span className="text-sm font-medium text-slate-600">Ano</span>
+            <select className="input w-24 bg-white/90" value={ano} onChange={(e) => setAno(Number(e.target.value))}>
+              {[ano - 1, ano, ano + 1].map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2">
+            <span className="text-sm font-medium text-slate-600">Mês</span>
+            <select className="input w-36 bg-white/90" value={mes} onChange={(e) => setMes(Number(e.target.value))}>
+              {[1,2,3,4,5,6,7,8,9,10,11,12].map((m) => (
+                <option key={m} value={m}>{new Date(2000, m - 1).toLocaleString('pt-BR', { month: 'long' })}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <button
+          type="button"
+          onClick={handleExportarPdf}
+          disabled={exportando || !data}
+          className="btn-primary text-sm px-4 py-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {exportando ? 'Gerando PDF...' : 'Exportar relatório (PDF)'}
+        </button>
       </div>
+
+      {erroExport && (
+        <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+          {erroExport}
+        </div>
+      )}
 
       {!data ? (
         <div className="card text-slate-600">Nenhum dado para o período.</div>

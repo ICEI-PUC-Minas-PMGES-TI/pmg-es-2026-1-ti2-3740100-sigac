@@ -4,6 +4,7 @@ import sigac.domain.*;
 import sigac.dto.CondominioDTO;
 import sigac.security.UserPrincipal;
 import sigac.dto.CreateUserRequest;
+import sigac.dto.UpdateUserRequest;
 import sigac.dto.UserDTO;
 import sigac.exception.ForbiddenException;
 import sigac.exception.NotFoundException;
@@ -147,6 +148,84 @@ public class CondominioService {
         return sindicoCondominioRepository.findByCondominioId(condominioId).stream()
                 .map(s -> toUserDTO(s.getUser()))
                 .collect(Collectors.toList());
+    }
+
+    /** Atualiza nome e e-mail de um gestor associado ao condomínio. (SIGAC Admin only) */
+    @Transactional
+    public UserDTO atualizarGestor(Long condominioId, Long userId, UpdateUserRequest request) {
+        UserPrincipal principal = CondominioAcessoService.getCurrentUser();
+        if (principal == null || principal.getRole() != Role.SIGAC_ADMIN) {
+            throw new ForbiddenException("Apenas SIGAC Admin pode editar gestores");
+        }
+        GestorCondominio gc = gestorCondominioRepository.findByCondominioIdAndUserId(condominioId, userId)
+                .orElseThrow(() -> new NotFoundException("Gestor não encontrado para este condomínio"));
+        User user = gc.getUser();
+        if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Já existe usuário com este e-mail");
+        }
+        user.setNome(request.getNome());
+        user.setEmail(request.getEmail());
+        if (request.getNovaSenha() != null && !request.getNovaSenha().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.getNovaSenha()));
+        }
+        return toUserDTO(userRepository.save(user));
+    }
+
+    /** Remove vínculo de gestor com o condomínio, e apaga usuário se não tiver outros vínculos. (SIGAC Admin only) */
+    @Transactional
+    public void removerGestor(Long condominioId, Long userId) {
+        UserPrincipal principal = CondominioAcessoService.getCurrentUser();
+        if (principal == null || principal.getRole() != Role.SIGAC_ADMIN) {
+            throw new ForbiddenException("Apenas SIGAC Admin pode remover gestores");
+        }
+        GestorCondominio gc = gestorCondominioRepository.findByCondominioIdAndUserId(condominioId, userId)
+                .orElseThrow(() -> new NotFoundException("Gestor não encontrado para este condomínio"));
+        User user = gc.getUser();
+        gestorCondominioRepository.delete(gc);
+        boolean aindaEhGestor = !gestorCondominioRepository.findByUserId(user.getId()).isEmpty();
+        boolean aindaEhSindico = !sindicoCondominioRepository.findByUserId(user.getId()).isEmpty();
+        if (!aindaEhGestor && !aindaEhSindico) {
+            userRepository.delete(user);
+        }
+    }
+
+    /** Atualiza nome e e-mail de um síndico associado ao condomínio. (SIGAC Admin only) */
+    @Transactional
+    public UserDTO atualizarSindico(Long condominioId, Long userId, UpdateUserRequest request) {
+        UserPrincipal principal = CondominioAcessoService.getCurrentUser();
+        if (principal == null || principal.getRole() != Role.SIGAC_ADMIN) {
+            throw new ForbiddenException("Apenas SIGAC Admin pode editar síndicos");
+        }
+        SindicoCondominio sc = sindicoCondominioRepository.findByCondominioIdAndUserId(condominioId, userId)
+                .orElseThrow(() -> new NotFoundException("Síndico não encontrado para este condomínio"));
+        User user = sc.getUser();
+        if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Já existe usuário com este e-mail");
+        }
+        user.setNome(request.getNome());
+        user.setEmail(request.getEmail());
+        if (request.getNovaSenha() != null && !request.getNovaSenha().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.getNovaSenha()));
+        }
+        return toUserDTO(userRepository.save(user));
+    }
+
+    /** Remove vínculo de síndico com o condomínio, e apaga usuário se não tiver outros vínculos. (SIGAC Admin only) */
+    @Transactional
+    public void removerSindico(Long condominioId, Long userId) {
+        UserPrincipal principal = CondominioAcessoService.getCurrentUser();
+        if (principal == null || principal.getRole() != Role.SIGAC_ADMIN) {
+            throw new ForbiddenException("Apenas SIGAC Admin pode remover síndicos");
+        }
+        SindicoCondominio sc = sindicoCondominioRepository.findByCondominioIdAndUserId(condominioId, userId)
+                .orElseThrow(() -> new NotFoundException("Síndico não encontrado para este condomínio"));
+        User user = sc.getUser();
+        sindicoCondominioRepository.delete(sc);
+        boolean aindaEhGestor = !gestorCondominioRepository.findByUserId(user.getId()).isEmpty();
+        boolean aindaEhSindico = !sindicoCondominioRepository.findByUserId(user.getId()).isEmpty();
+        if (!aindaEhGestor && !aindaEhSindico) {
+            userRepository.delete(user);
+        }
     }
 
     private CondominioDTO toDTO(Condominio c) {

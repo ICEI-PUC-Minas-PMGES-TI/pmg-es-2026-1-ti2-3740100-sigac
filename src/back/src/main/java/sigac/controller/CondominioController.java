@@ -2,6 +2,7 @@ package sigac.controller;
 
 import sigac.dto.CondominioDTO;
 import sigac.dto.CreateUserRequest;
+import sigac.dto.UpdateUserRequest;
 import sigac.dto.UserDTO;
 import sigac.service.CondominioService;
 import jakarta.validation.Valid;
@@ -51,6 +52,17 @@ public class CondominioController {
         return condominioService.listarGestores(id);
     }
 
+    @PutMapping("/{id}/gestores/{userId}")
+    public UserDTO atualizarGestor(@PathVariable Long id, @PathVariable Long userId, @Valid @RequestBody UpdateUserRequest request) {
+        return condominioService.atualizarGestor(id, userId, request);
+    }
+
+    @DeleteMapping("/{id}/gestores/{userId}")
+    public ResponseEntity<Void> removerGestor(@PathVariable Long id, @PathVariable Long userId) {
+        condominioService.removerGestor(id, userId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{id}/sindicos")
     public ResponseEntity<UserDTO> criarSindico(@PathVariable Long id, @Valid @RequestBody CreateUserRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(condominioService.criarSindico(id, request));
@@ -59,5 +71,16 @@ public class CondominioController {
     @GetMapping("/{id}/sindicos")
     public List<UserDTO> listarSindicos(@PathVariable Long id) {
         return condominioService.listarSindicos(id);
+    }
+
+    @PutMapping("/{id}/sindicos/{userId}")
+    public UserDTO atualizarSindico(@PathVariable Long id, @PathVariable Long userId, @Valid @RequestBody UpdateUserRequest request) {
+        return condominioService.atualizarSindico(id, userId, request);
+    }
+
+    @DeleteMapping("/{id}/sindicos/{userId}")
+    public ResponseEntity<Void> removerSindico(@PathVariable Long id, @PathVariable Long userId) {
+        condominioService.removerSindico(id, userId);
+        return ResponseEntity.noContent().build();
     }
 }

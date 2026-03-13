@@ -82,7 +82,11 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
           ))}
         </nav>
         <div className="p-3 border-t border-white/10 shrink-0">
-          <p className="text-sm text-white/80 truncate">{user.email}</p>
+          <p className="text-sm text-white/80 truncate">{user.nome || user.email}</p>
+          <Link href={`/gestor/perfil?condominioId=${cid}`} className="flex items-center gap-2 text-sm text-white/70 hover:text-white mt-1">
+            <IconUser className="shrink-0" />
+            Perfil
+          </Link>
           <button onClick={logout} className="flex items-center gap-2 text-sm text-white/70 hover:text-white mt-1">
             <IconLogout className="shrink-0" />
             Sair
@@ -101,7 +105,11 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
               </span>
             )}
           </div>
-          <span className="text-sm text-slate-600 truncate max-w-[200px] shrink-0">{user.email}</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link href={`/gestor/perfil?condominioId=${cid}`} className="text-sm font-medium text-sigac-nav hover:text-sigac-accent truncate max-w-[180px]" title={user.nome || user.email}>
+              {user.nome || user.email}
+            </Link>
+          </div>
         </header>
         <main className="flex-1 overflow-auto p-6 bg-transparent">{children}</main>
       </div>

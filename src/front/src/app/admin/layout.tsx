@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 import { Logo } from '@/components/Logo';
-import { IconBuilding, IconLogout } from '@/components/Icons';
+import { IconBuilding, IconLogout, IconUser } from '@/components/Icons';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout, isAdmin } = useAuth();
@@ -45,7 +45,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
         <div className="p-3 border-t border-white/10 shrink-0">
-          <p className="text-sm text-white/80 truncate">{user.email}</p>
+          <p className="text-sm text-white/80 truncate">{user.nome || user.email}</p>
+          <Link href="/admin/perfil" className="flex items-center gap-2 text-sm text-white/70 hover:text-white mt-1">
+            <IconUser className="shrink-0" />
+            Perfil
+          </Link>
           <button onClick={logout} className="flex items-center gap-2 text-sm text-white/70 hover:text-white mt-1">
             <IconLogout className="shrink-0" />
             Sair
@@ -58,7 +62,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Logo className="h-8 w-auto" />
           </Link>
           <div className="flex-1" />
-          <span className="text-sm text-slate-600 truncate max-w-[200px]">{user.email}</span>
+          <Link href="/admin/perfil" className="text-sm font-medium text-sigac-nav hover:text-sigac-accent truncate max-w-[200px]" title={user.nome || user.email}>
+            {user.nome || user.email}
+          </Link>
         </header>
         <main className="flex-1 overflow-auto p-6 bg-sigac-bg">{children}</main>
       </div>

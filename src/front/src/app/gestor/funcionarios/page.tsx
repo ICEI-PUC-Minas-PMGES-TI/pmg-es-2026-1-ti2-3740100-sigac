@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api, FuncionarioDTO } from '@/lib/api';
+import { IconEdit, IconTrash } from '@/components/Icons';
 
 export default function FuncionariosPage() {
   const searchParams = useSearchParams();
@@ -136,9 +137,13 @@ export default function FuncionariosPage() {
                 <td className="p-3">{f.funcao}</td>
                 <td className="p-3 text-right">R$ {Number(f.valorMensal).toFixed(2).replace('.', ',')}</td>
                 <td className="p-2">
-                  <div className="flex gap-2">
-                    <button type="button" className="text-sigac-accent text-sm hover:underline" onClick={() => aoAbrirForm(f)}>Editar</button>
-                    <button type="button" className="text-red-600 text-sm hover:underline" onClick={() => setDeletingId(f.id)}>Deletar</button>
+                  <div className="flex items-center gap-1">
+                    <button type="button" className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors" onClick={() => aoAbrirForm(f)} title="Editar" aria-label="Editar">
+                      <IconEdit className="w-5 h-5" />
+                    </button>
+                    <button type="button" className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors" onClick={() => setDeletingId(f.id)} title="Excluir" aria-label="Excluir">
+                      <IconTrash className="w-5 h-5" />
+                    </button>
                   </div>
                 </td>
               </tr>
