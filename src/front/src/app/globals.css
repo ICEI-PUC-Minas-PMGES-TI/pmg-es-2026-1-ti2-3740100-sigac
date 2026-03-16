@@ -17,6 +17,51 @@ body {
   background-attachment: fixed;
 }
 
+/* Containers para fundo com imagem + overlay (imagem carregada via <img> no JSX) */
+.page-login-bg {
+  position: relative;
+  min-height: 100vh;
+}
+
+.page-login-bg .page-login-bg-overlay {
+  position: absolute;
+  inset: 0;
+  /* Overlay bem leve para a imagem aparecer; só um véu sutil para legibilidade */
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.4) 0%, rgba(248, 250, 252, 0.35) 50%, rgba(255, 255, 255, 0.4) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.main-internal-bg {
+  position: relative;
+  background-color: #f1f5f9;
+}
+
+/* Imagem fixa só na área à direita da sidebar (sidebar = 14rem),
+   começando abaixo do header (h-14 ≈ 3.5rem) para não cobrir o topo */
+.main-internal-bg .main-internal-bg-img {
+  position: fixed;
+  left: 14rem;
+  top: 3.5rem;
+  width: calc(100vw - 14rem);
+  height: calc(100vh - 3.5rem);
+  object-fit: cover;
+  object-position: center top;
+  z-index: 0;
+}
+
+.main-internal-bg .main-internal-bg-overlay {
+  position: fixed;
+  left: 14rem;
+  top: 3.5rem;
+  right: 0;
+  bottom: 0;
+  /* Overlay leve para o fundo aparecer; conteúdo em cards/tabelas continua legível */
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 0%, rgba(241, 245, 249, 0.4) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
 @layer components {
   .btn-primary {
     @apply bg-sigac-accent hover:bg-sigac-accent-hover text-white font-medium py-2.5 px-5 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-sigac-accent focus:ring-offset-2;

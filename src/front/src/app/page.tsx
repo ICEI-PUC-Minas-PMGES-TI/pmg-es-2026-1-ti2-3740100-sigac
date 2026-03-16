@@ -38,21 +38,27 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-sigac-bg">
-        <LoadingSpinner message="Verificando sessão..." />
+      <div className="page-login-bg flex items-center justify-center">
+        <img src="/img/fundo-login.png" alt="" className="absolute inset-0 w-full h-full object-cover object-center" aria-hidden />
+        <div className="page-login-bg-overlay" />
+        <div className="relative z-10">
+          <LoadingSpinner message="Verificando sessão..." />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-sigac-bg px-4 py-12">
+    <div className="page-login-bg flex items-center justify-center px-4 py-12">
+      <img src="/img/fundo-login.png" alt="" className="absolute inset-0 w-full h-full object-cover object-center" aria-hidden />
+      <div className="page-login-bg-overlay" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full max-w-md"
+        className="relative z-10 w-full max-w-md"
       >
-        <div className="card text-center mb-8 flex flex-col items-center py-8 px-6">
+        <div className="card text-center mb-8 flex flex-col items-center py-8 px-6 shadow-xl border-slate-100 bg-white">
           <motion.div
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
@@ -70,7 +76,7 @@ export default function LoginPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.35 }}
           onSubmit={handleSubmit}
-          className="card space-y-5 py-6 px-6"
+          className="card space-y-5 py-6 px-6 shadow-xl border-slate-100 bg-white"
         >
           <h2 className="text-xl font-semibold text-sigac-nav flex items-center gap-2">
             <LogIn className="w-5 h-5 text-sigac-accent" />

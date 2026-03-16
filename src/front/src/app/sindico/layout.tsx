@@ -119,7 +119,11 @@ export default function SindicoLayout({ children }: { children: React.ReactNode 
             </Link>
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-6 bg-transparent">{children}</main>
+        <main className="flex-1 overflow-auto p-6 main-internal-bg">
+          <img src="/img/fundo.png" alt="" className="main-internal-bg-img" aria-hidden />
+          <div className="main-internal-bg-overlay" />
+          <div className="relative z-10">{children}</div>
+        </main>
       </div>
     </div>
   );

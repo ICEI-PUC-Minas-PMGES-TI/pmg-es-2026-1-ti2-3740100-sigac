@@ -73,7 +73,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {user.nome || user.email}
           </Link>
         </header>
-        <main className="flex-1 overflow-auto p-6 bg-sigac-bg">{children}</main>
+        <main className="flex-1 overflow-auto p-6 main-internal-bg">
+          <img src="/img/fundo.png" alt="" className="main-internal-bg-img" aria-hidden />
+          <div className="main-internal-bg-overlay" />
+          <div className="relative z-10">{children}</div>
+        </main>
       </div>
     </div>
   );
