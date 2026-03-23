@@ -1,5 +1,4 @@
-# SIGAC (Sistema Integrado de Gestão e Administração
-Condominial)
+# SIGAC (Sistema Integrado de Gestão e Administração Condominial)
 
 Este projeto propõe o desenvolvimento de um sistema web (SIGAC) para otimizar e integrar os processos de administração condominial. O objetivo é centralizar o
 cadastro de condomínios e prestadores de serviço, a alocação de pessoal e a gestão de
