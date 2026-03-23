@@ -32,6 +32,29 @@ export async function api<T>(
   return res.json();
 }
 
+/** POST multipart (sem Content-Type manual; o browser define o boundary). */
+export async function apiFormData<T = { message: string }>(
+  path: string,
+  formData: FormData
+): Promise<T> {
+  const token = getToken();
+  const headers: HeadersInit = {};
+  if (token) (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}${path}`, { method: 'POST', body: formData, headers });
+  const data = (await res.json().catch(() => ({}))) as { message?: string };
+  if (!res.ok) {
+    const msg = data?.message;
+    if (msg && !/forbidden|unauthorized/i.test(msg)) throw new Error(msg);
+    if (res.status === 401) throw new Error('Sessão expirada ou acesso negado. Faça login novamente.');
+    if (res.status === 403) throw new Error('Você não tem permissão para esta ação.');
+    if (res.status === 404) throw new Error('Registro não encontrado.');
+    if (res.status >= 500) throw new Error(msg || 'Erro no servidor. Tente novamente em alguns instantes.');
+    throw new Error(msg || 'Algo deu errado. Tente novamente.');
+  }
+  return data as T;
+}
+
 export type Role = 'SIGAC_ADMIN' | 'GESTOR' | 'SINDICO';
 
 export interface AuthResponse {
@@ -83,6 +106,20 @@ export interface ManutencaoDTO {
   prestador?: string;
   instrucoesEmail?: string;
   condominioId: number;
+  /** Opcional no cadastro: vincula à fila do síndico e remove a solicitação após criar. */
+  solicitacaoId?: number | null;
+}
+
+export interface SolicitacaoManutencaoDTO {
+  id: number;
+  titulo: string;
+  condominioId: number;
+  solicitanteNome: string;
+  criadoEm: string;
+}
+
+export interface SolicitacaoManutencaoContagemDTO {
+  total: number;
 }
 
 export interface ManutencaoResumoDTO {

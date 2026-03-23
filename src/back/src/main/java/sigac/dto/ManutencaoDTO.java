@@ -14,6 +14,9 @@ public class ManutencaoDTO {
     private String prestador;
     private String instrucoesEmail;
     private Long condominioId;
+    /** Ao cadastrar a partir de uma solicitação do síndico, enviar o id para remover a fila após criar. */
+    private Long solicitacaoId;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getDescricao() { return descricao; }
@@ -30,4 +33,6 @@ public class ManutencaoDTO {
     public void setCondominioId(Long condominioId) { this.condominioId = condominioId; }
     public String getInstrucoesEmail() { return instrucoesEmail; }
     public void setInstrucoesEmail(String instrucoesEmail) { this.instrucoesEmail = instrucoesEmail; }
+    public Long getSolicitacaoId() { return solicitacaoId; }
+    public void setSolicitacaoId(Long solicitacaoId) { this.solicitacaoId = solicitacaoId; }
 }

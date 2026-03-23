@@ -45,6 +45,14 @@ public class CondominioAcessoService {
         return false;
     }
 
+    /** Síndico vinculado pode abrir solicitação de manutenção para o gestor analisar. */
+    public boolean podeSolicitarManutencao(Long condominioId) {
+        UserPrincipal principal = getCurrentUser();
+        if (principal == null) return false;
+        if (principal.getRole() != Role.SINDICO) return false;
+        return sindicoCondominioRepository.findByCondominioIdAndUserId(condominioId, principal.getId()).isPresent();
+    }
+
     public static UserPrincipal getCurrentUser() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof UserPrincipal) {

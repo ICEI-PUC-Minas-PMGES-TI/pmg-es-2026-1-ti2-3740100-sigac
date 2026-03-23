@@ -11,23 +11,37 @@ import sigac.repository.CondominioRepository;
 import sigac.repository.FuncionarioRepository;
 import sigac.repository.GastoProdutoRepository;
 import sigac.repository.ManutencaoRepository;
+import jakarta.mail.MessagingException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.YearMonth;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
 public class DashboardService {
 
     private final CondominioRepository condominioRepository;
+    private final EmailService emailService;
 
-    public DashboardService(CondominioRepository condominioRepository, FuncionarioRepository funcionarioRepository, GastoProdutoRepository gastoProdutoRepository, ManutencaoRepository manutencaoRepository, CondominioAcessoService acessoService) {
+    public DashboardService(
+            CondominioRepository condominioRepository,
+            EmailService emailService,
+            FuncionarioRepository funcionarioRepository,
+            GastoProdutoRepository gastoProdutoRepository,
+            ManutencaoRepository manutencaoRepository,
+            CondominioAcessoService acessoService) {
         this.condominioRepository = condominioRepository;
+        this.emailService = emailService;
         this.funcionarioRepository = funcionarioRepository;
         this.gastoProdutoRepository = gastoProdutoRepository;
         this.manutencaoRepository = manutencaoRepository;
@@ -91,6 +105,55 @@ public class DashboardService {
         dto.setFuncionarios(funcionariosDto);
         dto.setGastosProdutosDoMes(gastosProdutosDoMes);
         return dto;
+    }
+
+    private static final int MAX_DESTINATARIOS_RELATORIO = 40;
+
+    /**
+     * Envia por e-mail o PDF do relatório (gerado no front) para um ou mais destinatários.
+     *
+     * @return quantidade de destinatários após normalização (deduplicação)
+     */
+    public int enviarRelatorioPorEmail(Long condominioId, List<String> destinatarios, int ano, int mes, byte[] pdfBytes, String nomeArquivoOriginal) throws MessagingException {
+        if (!acessoService.podeEditarCondominio(condominioId)) throw new ForbiddenException("Sem permissão para enviar relatório");
+        if (destinatarios == null || destinatarios.isEmpty()) throw new IllegalArgumentException("Informe ao menos um e-mail de destino");
+        LinkedHashSet<String> unicos = new LinkedHashSet<>();
+        for (String s : destinatarios) {
+            if (s == null) continue;
+            String t = s.trim();
+            if (!t.isEmpty()) unicos.add(t);
+        }
+        if (unicos.isEmpty()) throw new IllegalArgumentException("Informe ao menos um e-mail de destino");
+        if (unicos.size() > MAX_DESTINATARIOS_RELATORIO) {
+            throw new IllegalArgumentException("Máximo de " + MAX_DESTINATARIOS_RELATORIO + " destinatários por envio");
+        }
+        List<String> lista = new ArrayList<>(unicos);
+        if (ano < 2000 || ano > 2100 || mes < 1 || mes > 12) throw new IllegalArgumentException("Período inválido");
+        if (pdfBytes == null || pdfBytes.length < 8) throw new IllegalArgumentException("Arquivo PDF inválido ou vazio");
+        if (pdfBytes[0] != '%' || pdfBytes[1] != 'P' || pdfBytes[2] != 'D' || pdfBytes[3] != 'F') {
+            throw new IllegalArgumentException("O anexo deve ser um arquivo PDF");
+        }
+        if (pdfBytes.length > 15 * 1024 * 1024) throw new IllegalArgumentException("Arquivo muito grande (máx. 15 MB)");
+
+        DashboardGastosDTO dash = relatorioGastosMensais(condominioId, ano, mes);
+        String periodoLegivel = Month.of(mes).getDisplayName(TextStyle.FULL_STANDALONE, new Locale("pt", "BR")) + " de " + ano;
+        NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"));
+        String totalFmt = nf.format(dash.getTotalGeral());
+
+        String nomeAnexo = nomeArquivoOriginal != null ? nomeArquivoOriginal.trim() : "";
+        if (nomeAnexo.isEmpty()) nomeAnexo = "relatorio-gastos.pdf";
+        nomeAnexo = nomeAnexo.replaceAll("[^a-zA-Z0-9._-]", "_");
+        if (!nomeAnexo.toLowerCase(Locale.ROOT).endsWith(".pdf")) nomeAnexo = nomeAnexo + ".pdf";
+
+        emailService.enviarRelatorioGastosPdf(
+                lista,
+                dash.getNomeCondominio(),
+                periodoLegivel,
+                totalFmt,
+                pdfBytes,
+                nomeAnexo
+        );
+        return lista.size();
     }
 
     private ManutencaoResumoDTO toManutencaoResumo(Manutencao m) {

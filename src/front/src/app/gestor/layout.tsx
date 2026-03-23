@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
-import { api, CondominioDTO } from '@/lib/api';
+import { api, CondominioDTO, SolicitacaoManutencaoContagemDTO } from '@/lib/api';
 import { Logo } from '@/components/Logo';
 import { IconDashboard, IconBuilding, IconUser, IconUsers, IconWallet, IconWrench, IconLogout } from '@/components/Icons';
 
@@ -16,6 +16,7 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
   const condominioId = searchParams.get('condominioId');
   const [condominios, setCondominios] = useState<CondominioDTO[]>([]);
   const [currentCond, setCurrentCond] = useState<CondominioDTO | null>(null);
+  const [solicManutencaoCount, setSolicManutencaoCount] = useState(0);
 
   useEffect(() => {
     if (!loading && !isGestor) router.replace('/');
@@ -35,6 +36,30 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
     if (currentCond && !condominioId) router.replace(`/gestor?condominioId=${currentCond.id}`);
   }, [currentCond, condominioId, router]);
 
+  useEffect(() => {
+    if (!user || !currentCond?.id) return;
+    const id = currentCond.id;
+    let cancelled = false;
+    const fetchCount = () => {
+      api<SolicitacaoManutencaoContagemDTO>(`/condominios/${id}/solicitacoes-manutencao/contagem`)
+        .then((c) => {
+          if (!cancelled) setSolicManutencaoCount(Number(c.total));
+        })
+        .catch(() => {});
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 45_000);
+    const onSolicChange = () => {
+      if (!cancelled) fetchCount();
+    };
+    window.addEventListener('sigac-solic-manutencao-changed', onSolicChange);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      window.removeEventListener('sigac-solic-manutencao-changed', onSolicChange);
+    };
+  }, [user, currentCond?.id]);
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-sigac-bg">
       <div className="flex flex-col items-center gap-4">
@@ -47,11 +72,11 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
 
   const cid = currentCond?.id ?? '';
   const navLinks = [
-    { href: `/gestor?condominioId=${cid}`, label: 'Dashboard', active: pathname === '/gestor', icon: IconDashboard },
-    { href: `/gestor/funcionarios?condominioId=${cid}`, label: 'Funcionários', active: pathname.startsWith('/gestor/funcionarios'), icon: IconUser },
-    { href: `/gestor/inquilinos?condominioId=${cid}`, label: 'Inquilinos', active: pathname.startsWith('/gestor/inquilinos'), icon: IconUsers },
-    { href: `/gestor/gastos?condominioId=${cid}`, label: 'Gastos (produtos)', active: pathname.startsWith('/gestor/gastos'), icon: IconWallet },
-    { href: `/gestor/manutencoes?condominioId=${cid}`, label: 'Manutenções', active: pathname.startsWith('/gestor/manutencoes'), icon: IconWrench },
+    { href: `/gestor?condominioId=${cid}`, label: 'Dashboard', active: pathname === '/gestor', icon: IconDashboard, badge: 0 },
+    { href: `/gestor/funcionarios?condominioId=${cid}`, label: 'Funcionários', active: pathname.startsWith('/gestor/funcionarios'), icon: IconUser, badge: 0 },
+    { href: `/gestor/inquilinos?condominioId=${cid}`, label: 'Inquilinos', active: pathname.startsWith('/gestor/inquilinos'), icon: IconUsers, badge: 0 },
+    { href: `/gestor/gastos?condominioId=${cid}`, label: 'Gastos (produtos)', active: pathname.startsWith('/gestor/gastos'), icon: IconWallet, badge: 0 },
+    { href: `/gestor/manutencoes?condominioId=${cid}`, label: 'Manutenções', active: pathname.startsWith('/gestor/manutencoes'), icon: IconWrench, badge: solicManutencaoCount },
   ];
 
   return (
@@ -77,14 +102,19 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
           </div>
         )}
         <nav className="flex-1 overflow-y-auto p-2 min-h-0">
-          {navLinks.map(({ href, label, active, icon: Icon }) => (
+          {navLinks.map(({ href, label, active, icon: Icon, badge }) => (
             <Link
               key={href}
               href={href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition ${active ? 'bg-sigac-accent text-white' : 'hover:bg-white/10 text-white/90'}`}
             >
               <Icon className="shrink-0" />
-              <span>{label}</span>
+              <span className="flex-1 min-w-0">{label}</span>
+              {badge > 0 && (
+                <span className="shrink-0 min-w-[1.25rem] h-5 px-1.5 rounded-full bg-amber-400 text-sigac-nav text-xs font-bold flex items-center justify-center" title="Solicitações do síndico pendentes">
+                  {badge > 99 ? '99+' : badge}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
@@ -118,6 +148,19 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
             </Link>
           </div>
         </header>
+        {solicManutencaoCount > 0 && (
+          <div className="shrink-0 bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-sm text-amber-950">
+            <p>
+              <strong>{solicManutencaoCount === 1 ? 'Há 1 solicitação' : `Há ${solicManutencaoCount} solicitações`}</strong> de manutenção do síndico aguardando sua análise.
+            </p>
+            <Link
+              href={`/gestor/manutencoes?condominioId=${cid}`}
+              className="font-semibold text-amber-900 underline decoration-amber-400 hover:text-amber-800"
+            >
+              Ver na página de manutenções
+            </Link>
+          </div>
+        )}
         <main className="flex-1 overflow-auto p-6 main-internal-bg">
           <img src="/img/fundo.png" alt="" className="main-internal-bg-img" aria-hidden />
           <div className="main-internal-bg-overlay" />

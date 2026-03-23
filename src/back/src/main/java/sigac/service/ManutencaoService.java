@@ -4,8 +4,10 @@ import sigac.domain.Manutencao;
 import sigac.dto.ManutencaoDTO;
 import sigac.exception.ForbiddenException;
 import sigac.exception.NotFoundException;
+import sigac.domain.SolicitacaoManutencao;
 import sigac.repository.CondominioRepository;
 import sigac.repository.ManutencaoRepository;
+import sigac.repository.SolicitacaoManutencaoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,12 +19,19 @@ public class ManutencaoService {
 
     private final ManutencaoRepository manutencaoRepository;
     private final CondominioRepository condominioRepository;
+    private final SolicitacaoManutencaoRepository solicitacaoManutencaoRepository;
     private final CondominioAcessoService acessoService;
     private final EmailService emailService;
 
-    public ManutencaoService(ManutencaoRepository manutencaoRepository, CondominioRepository condominioRepository, CondominioAcessoService acessoService, EmailService emailService) {
+    public ManutencaoService(
+            ManutencaoRepository manutencaoRepository,
+            CondominioRepository condominioRepository,
+            SolicitacaoManutencaoRepository solicitacaoManutencaoRepository,
+            CondominioAcessoService acessoService,
+            EmailService emailService) {
         this.manutencaoRepository = manutencaoRepository;
         this.condominioRepository = condominioRepository;
+        this.solicitacaoManutencaoRepository = solicitacaoManutencaoRepository;
         this.acessoService = acessoService;
         this.emailService = emailService;
     }
@@ -30,6 +39,11 @@ public class ManutencaoService {
     @Transactional
     public ManutencaoDTO criar(Long condominioId, ManutencaoDTO dto) {
         if (!acessoService.podeEditarCondominio(condominioId)) throw new ForbiddenException("Sem permissão");
+        SolicitacaoManutencao solicitacao = null;
+        if (dto.getSolicitacaoId() != null) {
+            solicitacao = solicitacaoManutencaoRepository.findByIdAndCondominioId(dto.getSolicitacaoId(), condominioId)
+                    .orElseThrow(() -> new NotFoundException("Solicitação não encontrada neste condomínio"));
+        }
         var condominio = condominioRepository.findById(condominioId).orElseThrow(() -> new NotFoundException("Condomínio não encontrado"));
         Manutencao m = new Manutencao();
         m.setDescricao(dto.getDescricao());
@@ -40,9 +54,13 @@ public class ManutencaoService {
         m.setInstrucoesEmail(dto.getInstrucoesEmail());
         m.setCondominio(condominio);
         m = manutencaoRepository.save(m);
+        if (solicitacao != null) {
+            solicitacaoManutencaoRepository.delete(solicitacao);
+        }
         emailService.enviarNotificacaoManutencao(m, condominio.getNome());
         dto.setId(m.getId());
         dto.setCondominioId(condominioId);
+        dto.setSolicitacaoId(null);
         return dto;
     }
 

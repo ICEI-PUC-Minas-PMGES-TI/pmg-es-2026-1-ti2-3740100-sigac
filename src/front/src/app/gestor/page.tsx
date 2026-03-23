@@ -1,13 +1,14 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { api, DashboardGastosDTO, FuncionarioDTO, ManutencaoDTO, GastoProdutoDTO } from '@/lib/api';
+import { api, apiFormData, DashboardGastosDTO, FuncionarioDTO, ManutencaoDTO, GastoProdutoDTO } from '@/lib/api';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { DashboardSkeleton } from '@/components/LoadingSpinner';
-import { FileDown } from 'lucide-react';
+import { FormModal } from '@/components/FormModal';
+import { ChevronDown, FileDown, Mail, Plus, X } from 'lucide-react';
 
 const COLORS = ['#1b3266', '#2f6ce6', '#0ea5e9', '#10b981', '#f59e0b'];
 
@@ -39,6 +40,33 @@ export default function GestorDashboardPage() {
   const [mes, setMes] = useState(new Date().getMonth() + 1);
   const [exportando, setExportando] = useState(false);
   const [erroExport, setErroExport] = useState<string | null>(null);
+  const [sucessoEnvio, setSucessoEnvio] = useState<string | null>(null);
+  const [relatorioMenuOpen, setRelatorioMenuOpen] = useState(false);
+  const [modalEmailRelatorio, setModalEmailRelatorio] = useState(false);
+  const [emailsRelatorio, setEmailsRelatorio] = useState<string[]>(['']);
+  const relatorioMenuRef = useRef<HTMLDivElement>(null);
+
+  const relatorioRows = useMemo(() => {
+    const funcionarios = (data?.funcionarios && data.funcionarios.length > 0)
+      ? data.funcionarios
+      : funcionariosList.map((f) => ({ id: f.id, nome: f.nome, funcao: f.funcao, valorMensal: f.valorMensal }));
+    const manutencoes = (data?.manutencoesDoMes && data.manutencoesDoMes.length > 0)
+      ? data.manutencoesDoMes
+      : manutencoesList
+          .filter((m) => mesAnoMatch(m.data, ano, mes))
+          .map((m) => ({ id: m.id, descricao: m.descricao, data: m.data, valor: m.valor, tipo: m.tipo, prestador: m.prestador }));
+    const gastosProdutos = (data?.gastosProdutosDoMes && data.gastosProdutosDoMes.length > 0)
+      ? data.gastosProdutosDoMes
+      : gastosList
+          .filter((g) => mesAnoMatch(g.data, ano, mes))
+          .map((g) => ({ id: g.id, descricao: g.descricao, valor: g.valor, data: g.data, lojaFornecedor: g.lojaFornecedor }));
+    return { funcionarios, manutencoes, gastosProdutos };
+  }, [data, funcionariosList, manutencoesList, gastosList, ano, mes]);
+
+  const chartData = useMemo(
+    () => data?.itens?.map((i) => ({ name: i.categoria, value: i.valor })) ?? [],
+    [data]
+  );
 
   useEffect(() => {
     if (!condominioId) return;
@@ -59,114 +87,169 @@ export default function GestorDashboardPage() {
       .finally(() => setLoading(false));
   }, [condominioId, ano, mes]);
 
-  const handleExportarPdf = async () => {
-    if (!condominioId || !data) return;
-    setExportando(true);
+  useEffect(() => {
+    setSucessoEnvio(null);
+  }, [ano, mes, condominioId]);
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!relatorioMenuRef.current?.contains(e.target as Node)) setRelatorioMenuOpen(false);
+    };
+    document.addEventListener('click', onDocClick);
+    return () => document.removeEventListener('click', onDocClick);
+  }, []);
+
+  const gerarPdfBlob = useCallback(async (): Promise<{ blob: Blob; filename: string }> => {
+    if (!data) throw new Error('Sem dados para o período.');
+    const { funcionarios, manutencoes, gastosProdutos } = relatorioRows;
+    const { jsPDF } = await import('jspdf');
+    const autoTable = (await import('jspdf-autotable')).default;
+
+    const doc = new jsPDF('p', 'mm', 'a4');
+
+    const descricaoPeriodo = `${new Date(ano, mes - 1).toLocaleString('pt-BR', {
+      month: 'long',
+    })}/${ano}`;
+
+    doc.setFontSize(16);
+    doc.setTextColor(27, 50, 102);
+    doc.text('SIGAC - Relatório de gastos do condomínio', 14, 20);
+
+    doc.setFontSize(12);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Condomínio: ${data.nomeCondominio}`, 14, 30);
+    doc.text(`Período: ${descricaoPeriodo}`, 14, 37);
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 44);
+
+    let posY = 54;
+
+    doc.setFontSize(13);
+    doc.setTextColor(27, 50, 102);
+    doc.text('Resumo do mês', 14, posY);
+    posY += 6;
+
+    doc.setFontSize(11);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Funcionários: ${fmtMoney(data.totalFuncionarios)}`, 14, posY);
+    posY += 5;
+    doc.text(`Produtos: ${fmtMoney(data.totalProdutos)}`, 14, posY);
+    posY += 5;
+    doc.text(`Manutenções: ${fmtMoney(data.totalManutencoes)}`, 14, posY);
+    posY += 5;
+    doc.setFontSize(12);
+    doc.setTextColor(16, 185, 129);
+    doc.text(`TOTAL DO MÊS: ${fmtMoney(data.totalGeral)}`, 14, posY);
+
+    posY += 12;
+    doc.setFontSize(12);
+    doc.setTextColor(27, 50, 102);
+    doc.text('Funcionários', 14, posY);
+    posY += 6;
+    autoTable(doc, {
+      startY: posY,
+      head: [['Nome', 'Função', 'Valor mensal (R$)']],
+      body: funcionarios.map((f) => [
+        f.nome,
+        f.funcao,
+        fmtMoney(f.valorMensal),
+      ]),
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [27, 50, 102], textColor: 255 },
+      alternateRowStyles: { fillColor: [245, 248, 255] },
+      margin: { left: 14, right: 14 },
+    });
+
+    let afterFuncY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+    doc.setFontSize(12);
+    doc.setTextColor(27, 50, 102);
+    doc.text('Manutenções', 14, afterFuncY);
+    afterFuncY += 6;
+    autoTable(doc, {
+      startY: afterFuncY,
+      head: [['Data', 'Descrição', 'Tipo', 'Prestador', 'Valor (R$)']],
+      body: manutencoes.map((m) => [
+        fmtDate(m.data),
+        m.descricao,
+        m.tipo === 'EMERGENCIAL' ? 'Emergencial' : 'Prevista',
+        m.prestador ?? '—',
+        fmtMoney(m.valor),
+      ]),
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [16, 185, 129], textColor: 255 },
+      alternateRowStyles: { fillColor: [240, 253, 250] },
+      margin: { left: 14, right: 14 },
+    });
+
+    let afterManutY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+    doc.setFontSize(12);
+    doc.setTextColor(27, 50, 102);
+    doc.text('Gastos', 14, afterManutY);
+    afterManutY += 6;
+    autoTable(doc, {
+      startY: afterManutY,
+      head: [['Data', 'Descrição', 'Loja/Fornecedor', 'Valor (R$)']],
+      body: gastosProdutos.map((g) => [
+        fmtDate(g.data),
+        g.descricao ?? '—',
+        g.lojaFornecedor ?? '—',
+        fmtMoney(g.valor),
+      ]),
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [14, 165, 233], textColor: 255 },
+      alternateRowStyles: { fillColor: [239, 246, 255] },
+      margin: { left: 14, right: 14 },
+    });
+
+    const nomeArquivoBase = `relatorio-gastos-${data.nomeCondominio.replace(/\s+/g, '-').toLowerCase()}-${ano}-${String(mes).padStart(2, '0')}`;
+    const filename = `${nomeArquivoBase}.pdf`;
+    const blob = doc.output('blob') as Blob;
+    return { blob, filename };
+  }, [data, relatorioRows, ano, mes]);
+
+  const handleBaixarRelatorio = async () => {
+    setRelatorioMenuOpen(false);
     setErroExport(null);
+    setSucessoEnvio(null);
+    setExportando(true);
     try {
-      const { jsPDF } = await import('jspdf');
-      const autoTable = (await import('jspdf-autotable')).default;
+      const { blob, filename } = await gerarPdfBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: unknown) {
+      setErroExport(err instanceof Error ? err.message : 'Não foi possível gerar o PDF.');
+    } finally {
+      setExportando(false);
+    }
+  };
 
-      const doc = new jsPDF('p', 'mm', 'a4');
-
-      const descricaoPeriodo = `${new Date(ano, mes - 1).toLocaleString('pt-BR', {
-        month: 'long',
-      })}/${ano}`;
-
-      doc.setFontSize(16);
-      doc.setTextColor(27, 50, 102);
-      doc.text('SIGAC - Relatório de gastos do condomínio', 14, 20);
-
-      doc.setFontSize(12);
-      doc.setTextColor(80, 80, 80);
-      doc.text(`Condomínio: ${data.nomeCondominio}`, 14, 30);
-      doc.text(`Período: ${descricaoPeriodo}`, 14, 37);
-      doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 44);
-
-      let posY = 54;
-
-      doc.setFontSize(13);
-      doc.setTextColor(27, 50, 102);
-      doc.text('Resumo do mês', 14, posY);
-      posY += 6;
-
-      doc.setFontSize(11);
-      doc.setTextColor(60, 60, 60);
-      doc.text(`Funcionários: ${fmtMoney(data.totalFuncionarios)}`, 14, posY);
-      posY += 5;
-      doc.text(`Produtos: ${fmtMoney(data.totalProdutos)}`, 14, posY);
-      posY += 5;
-      doc.text(`Manutenções: ${fmtMoney(data.totalManutencoes)}`, 14, posY);
-      posY += 5;
-      doc.setFontSize(12);
-      doc.setTextColor(16, 185, 129);
-      doc.text(`TOTAL DO MÊS: ${fmtMoney(data.totalGeral)}`, 14, posY);
-
-      posY += 12;
-      doc.setFontSize(12);
-      doc.setTextColor(27, 50, 102);
-      doc.text('Funcionários', 14, posY);
-      posY += 6;
-      autoTable(doc, {
-        startY: posY,
-        head: [['Nome', 'Função', 'Valor mensal (R$)']],
-        body: funcionarios.map((f) => [
-          f.nome,
-          f.funcao,
-          fmtMoney(f.valorMensal),
-        ]),
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [27, 50, 102], textColor: 255 },
-        alternateRowStyles: { fillColor: [245, 248, 255] },
-        margin: { left: 14, right: 14 },
-      });
-
-      let afterFuncY = (doc as any).lastAutoTable.finalY + 10;
-      doc.setFontSize(12);
-      doc.setTextColor(27, 50, 102);
-      doc.text('Manutenções', 14, afterFuncY);
-      afterFuncY += 6;
-      autoTable(doc, {
-        startY: afterFuncY,
-        head: [['Data', 'Descrição', 'Tipo', 'Prestador', 'Valor (R$)']],
-        body: manutencoes.map((m) => [
-          fmtDate(m.data),
-          m.descricao,
-          m.tipo === 'EMERGENCIAL' ? 'Emergencial' : 'Prevista',
-          m.prestador ?? '—',
-          fmtMoney(m.valor),
-        ]),
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [16, 185, 129], textColor: 255 },
-        alternateRowStyles: { fillColor: [240, 253, 250] },
-        margin: { left: 14, right: 14 },
-      });
-
-      let afterManutY = (doc as any).lastAutoTable.finalY + 10;
-      doc.setFontSize(12);
-      doc.setTextColor(27, 50, 102);
-      doc.text('Gastos', 14, afterManutY);
-      afterManutY += 6;
-      autoTable(doc, {
-        startY: afterManutY,
-        head: [['Data', 'Descrição', 'Loja/Fornecedor', 'Valor (R$)']],
-        body: gastosProdutos.map((g) => [
-          fmtDate(g.data),
-          g.descricao ?? '—',
-          g.lojaFornecedor ?? '—',
-          fmtMoney(g.valor),
-        ]),
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [14, 165, 233], textColor: 255 },
-        alternateRowStyles: { fillColor: [239, 246, 255] },
-        margin: { left: 14, right: 14 },
-      });
-
-      const nomeArquivoBase = `relatorio-gastos-${data.nomeCondominio.replace(/\s+/g, '-').toLowerCase()}-${ano}-${String(mes).padStart(2, '0')}`;
-
-      doc.save(`${nomeArquivoBase}.pdf`);
-    } catch (err: any) {
-      setErroExport(err?.message || 'Não foi possível gerar o PDF. Tente novamente.');
+  const handleEnviarRelatorioEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!condominioId || !data) return;
+    const destinos = emailsRelatorio.map((x) => x.trim()).filter(Boolean);
+    if (destinos.length === 0) {
+      setErroExport('Informe ao menos um e-mail de destino.');
+      return;
+    }
+    setErroExport(null);
+    setSucessoEnvio(null);
+    setExportando(true);
+    try {
+      const { blob, filename } = await gerarPdfBlob();
+      const fd = new FormData();
+      destinos.forEach((email) => fd.append('email', email));
+      fd.append('ano', String(ano));
+      fd.append('mes', String(mes));
+      fd.append('arquivo', blob, filename);
+      const res = await apiFormData<{ message: string }>(`/condominios/${condominioId}/dashboard/relatorio-email`, fd);
+      setModalEmailRelatorio(false);
+      setEmailsRelatorio(['']);
+      setSucessoEnvio(res.message || 'E-mail enviado com sucesso.');
+    } catch (err: unknown) {
+      setErroExport(err instanceof Error ? err.message : 'Não foi possível enviar o e-mail.');
     } finally {
       setExportando(false);
     }
@@ -178,21 +261,7 @@ export default function GestorDashboardPage() {
 
   if (loading) return <DashboardSkeleton />;
 
-  // Usar listas do dashboard se vierem preenchidas; senão usar as listas dos endpoints (com filtro de mês onde couber)
-  const funcionarios = (data?.funcionarios && data.funcionarios.length > 0)
-    ? data.funcionarios
-    : funcionariosList.map((f) => ({ id: f.id, nome: f.nome, funcao: f.funcao, valorMensal: f.valorMensal }));
-  const manutencoes = (data?.manutencoesDoMes && data.manutencoesDoMes.length > 0)
-    ? data.manutencoesDoMes
-    : manutencoesList
-        .filter((m) => mesAnoMatch(m.data, ano, mes))
-        .map((m) => ({ id: m.id, descricao: m.descricao, data: m.data, valor: m.valor, tipo: m.tipo, prestador: m.prestador }));
-  const gastosProdutos = (data?.gastosProdutosDoMes && data.gastosProdutosDoMes.length > 0)
-    ? data.gastosProdutosDoMes
-    : gastosList
-        .filter((g) => mesAnoMatch(g.data, ano, mes))
-        .map((g) => ({ id: g.id, descricao: g.descricao, valor: g.valor, data: g.data, lojaFornecedor: g.lojaFornecedor }));
-  const chartData = data?.itens?.map((i) => ({ name: i.categoria, value: i.valor })) ?? [];
+  const { funcionarios, manutencoes, gastosProdutos } = relatorioRows;
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-6">
@@ -219,18 +288,121 @@ export default function GestorDashboardPage() {
             </select>
           </label>
         </div>
-        <motion.button
-          type="button"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleExportarPdf}
-          disabled={exportando || !data}
-          className="btn-primary text-sm px-4 py-2 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          <FileDown className="w-4 h-4" />
-          {exportando ? 'Gerando PDF...' : 'Exportar relatório (PDF)'}
-        </motion.button>
+        <div className="relative" ref={relatorioMenuRef}>
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setRelatorioMenuOpen((o) => !o);
+            }}
+            disabled={exportando || !data}
+            className="btn-primary text-sm px-4 py-2 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <FileDown className="w-4 h-4" />
+            {exportando ? 'Gerando PDF...' : 'Gerar Relatório'}
+            <ChevronDown className={`w-4 h-4 transition-transform ${relatorioMenuOpen ? 'rotate-180' : ''}`} />
+          </motion.button>
+          {relatorioMenuOpen && data && (
+            <div
+              className="absolute right-0 top-full mt-1 z-30 min-w-[220px] rounded-xl border border-slate-200 bg-white shadow-lg py-1 overflow-hidden"
+              role="menu"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                onClick={() => void handleBaixarRelatorio()}
+              >
+                <FileDown className="w-4 h-4 text-sigac-accent shrink-0" />
+                Baixar
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-t border-slate-100"
+                onClick={() => {
+                  setRelatorioMenuOpen(false);
+                  setErroExport(null);
+                  setModalEmailRelatorio(true);
+                }}
+              >
+                <Mail className="w-4 h-4 text-sigac-accent shrink-0" />
+                Enviar por e-mail
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+
+      <FormModal
+        open={modalEmailRelatorio}
+        onClose={() => { setModalEmailRelatorio(false); setEmailsRelatorio(['']); }}
+        title="Enviar relatório por e-mail"
+        icon={<Mail className="w-5 h-5 text-sigac-accent" />}
+        maxWidth="max-w-lg"
+      >
+        <form onSubmit={handleEnviarRelatorioEmail} className="space-y-3">
+          <p className="text-sm text-slate-600">
+            O PDF do período selecionado (ano/mês) será gerado e enviado em um único e-mail (com todos em cópia) com o anexo. Duplicados são ignorados.
+          </p>
+          <div className="space-y-2">
+            <span className="block text-sm font-medium text-slate-700">Destinatários</span>
+            {emailsRelatorio.map((val, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <input
+                  type="email"
+                  className="input flex-1 min-w-0"
+                  placeholder={i === 0 ? 'financeiro@empresa.com.br' : 'contato@exemplo.com'}
+                  value={val}
+                  onChange={(e) => {
+                    const next = [...emailsRelatorio];
+                    next[i] = e.target.value;
+                    setEmailsRelatorio(next);
+                  }}
+                  autoComplete="email"
+                  inputMode="email"
+                />
+                {emailsRelatorio.length > 1 && (
+                  <button
+                    type="button"
+                    className="shrink-0 p-2 rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+                    title="Remover este e-mail"
+                    aria-label="Remover e-mail"
+                    onClick={() => setEmailsRelatorio(emailsRelatorio.filter((_, j) => j !== i))}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-sigac-accent hover:text-sigac-nav transition-colors"
+              onClick={() => setEmailsRelatorio([...emailsRelatorio, ''])}
+            >
+              <Plus className="w-4 h-4" />
+              Adicionar outro e-mail
+            </button>
+            <p className="text-xs text-slate-500">Máximo de 40 destinatários por envio.</p>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <button type="submit" className="btn-primary" disabled={exportando}>
+              {exportando ? 'Enviando...' : 'Enviar'}
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => { setModalEmailRelatorio(false); setEmailsRelatorio(['']); }}>
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </FormModal>
+
+      {sucessoEnvio && (
+        <div className="mb-4 text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+          {sucessoEnvio}
+        </div>
+      )}
 
       {erroExport && (
         <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">

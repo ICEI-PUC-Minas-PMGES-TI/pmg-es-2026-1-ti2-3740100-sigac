@@ -2,6 +2,11 @@ spring:
   application:
     name: sigac-api
 
+  servlet:
+    multipart:
+      max-file-size: 16MB
+      max-request-size: 20MB
+
   datasource:
     # H2 em arquivo: dados persistem entre reinícios (pasta data/ na raiz do back)
     url: jdbc:h2:file:./data/sigac;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=TRUE;AUTO_SERVER=TRUE

@@ -2,31 +2,111 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Wrench } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Wrench, Send } from 'lucide-react';
 import { api, ManutencaoDTO } from '@/lib/api';
 import { TableSkeleton } from '@/components/LoadingSpinner';
+import { FormModal } from '@/components/FormModal';
 
 export default function SindicoManutencoesPage() {
   const searchParams = useSearchParams();
   const condominioId = searchParams.get('condominioId');
   const [list, setList] = useState<ManutencaoDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSolic, setShowSolic] = useState(false);
+  const [titulo, setTitulo] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const load = () => {
+    if (!condominioId) return;
+    setLoading(true);
+    api<ManutencaoDTO[]>(`/condominios/${condominioId}/manutencoes`).then(setList).finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    if (!condominioId) return;
-    api<ManutencaoDTO[]>(`/condominios/${condominioId}/manutencoes`).then(setList).finally(() => setLoading(false));
+    load();
   }, [condominioId]);
+
+  const enviarSolicitacao = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!condominioId) return;
+    setError('');
+    setSubmitting(true);
+    try {
+      await api(`/condominios/${condominioId}/solicitacoes-manutencao`, {
+        method: 'POST',
+        body: JSON.stringify({ titulo: titulo.trim() }),
+      });
+      setTitulo('');
+      setShowSolic(false);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao enviar');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (!condominioId) return <div className="card">Selecione um condomínio.</div>;
   if (loading) return <TableSkeleton rows={6} />;
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-6">
-      <h1 className="text-2xl font-bold text-sigac-nav flex items-center gap-2">
-        <Wrench className="w-8 h-8 text-sigac-accent" />
-        Manutenções (visualização)
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-sigac-nav flex items-center gap-2">
+            <Wrench className="w-8 h-8 text-sigac-accent" />
+            Manutenções
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">Visualize as manutenções cadastradas. Você pode solicitar ao gestor o que precisa ser arrumado.</p>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          type="button"
+          onClick={() => { setShowSolic(true); setError(''); }}
+          className="btn-primary flex items-center gap-2"
+        >
+          <Send className="w-5 h-5" />
+          Solicitar manutenção
+        </motion.button>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {error && (
+          <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="toast-error">
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <FormModal
+        open={showSolic}
+        onClose={() => { setShowSolic(false); setError(''); }}
+        title="Solicitar manutenção ao gestor"
+        icon={<Send className="w-5 h-5 text-sigac-accent" />}
+        maxWidth="max-w-lg"
+      >
+        <form onSubmit={enviarSolicitacao} className="space-y-3">
+          <p className="text-sm text-slate-600">Descreva apenas o que deve ser arrumado. O gestor do condomínio receberá a solicitação para aprovar ou reprovar.</p>
+          <textarea
+            className="input min-h-[100px]"
+            placeholder="Ex.: Portão da garagem está rangendo e precisa de lubrificação."
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            required
+            maxLength={500}
+            rows={4}
+          />
+          <div className="flex gap-2 pt-2">
+            <button type="submit" className="btn-primary" disabled={submitting}>
+              {submitting ? 'Enviando...' : 'Enviar solicitação'}
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => setShowSolic(false)}>Cancelar</button>
+          </div>
+        </form>
+      </FormModal>
+
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="card overflow-hidden p-0 rounded-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

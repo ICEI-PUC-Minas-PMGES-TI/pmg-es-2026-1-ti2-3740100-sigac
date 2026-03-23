@@ -1,20 +1,28 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wrench, Pencil, Trash2, Plus, Mail } from 'lucide-react';
-import { api, ManutencaoDTO } from '@/lib/api';
+import { Wrench, Pencil, Trash2, Plus, Mail, ClipboardList, CheckCircle2, XCircle } from 'lucide-react';
+import { api, ManutencaoDTO, SolicitacaoManutencaoDTO } from '@/lib/api';
 import { TableSkeleton } from '@/components/LoadingSpinner';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import { FormModal } from '@/components/FormModal';
+
+function notifySolicManutencaoChanged() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('sigac-solic-manutencao-changed'));
+  }
+}
 
 export default function ManutencoesPage() {
   const searchParams = useSearchParams();
   const condominioId = searchParams.get('condominioId');
   const [list, setList] = useState<ManutencaoDTO[]>([]);
+  const [solicitacoes, setSolicitacoes] = useState<SolicitacaoManutencaoDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [solicitacaoPendenteId, setSolicitacaoPendenteId] = useState<number | null>(null);
   const [form, setForm] = useState({
     descricao: '',
     valor: '',
@@ -35,34 +43,76 @@ export default function ManutencoesPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [deletingManutencao, setDeletingManutencao] = useState<ManutencaoDTO | null>(null);
+  const [rejeitandoSolic, setRejeitandoSolic] = useState<SolicitacaoManutencaoDTO | null>(null);
 
-  const load = () => {
+  const load = useCallback(() => {
     if (!condominioId) return;
-    api<ManutencaoDTO[]>(`/condominios/${condominioId}/manutencoes`).then(setList).finally(() => setLoading(false));
-  };
+    setLoading(true);
+    Promise.all([
+      api<ManutencaoDTO[]>(`/condominios/${condominioId}/manutencoes`),
+      api<SolicitacaoManutencaoDTO[]>(`/condominios/${condominioId}/solicitacoes-manutencao`).catch(() => [] as SolicitacaoManutencaoDTO[]),
+    ])
+      .then(([manutencoes, sol]) => {
+        setList(manutencoes);
+        setSolicitacoes(sol);
+        notifySolicManutencaoChanged();
+      })
+      .finally(() => setLoading(false));
+  }, [condominioId]);
 
   useEffect(() => {
     load();
-  }, [condominioId]);
+  }, [load]);
+
+  const openNovaManutencao = () => {
+    setSolicitacaoPendenteId(null);
+    setForm({
+      descricao: '',
+      valor: '',
+      data: new Date().toISOString().slice(0, 10),
+      tipo: 'PREVISTA',
+      prestador: '',
+      instrucoesEmail: '',
+    });
+    setShowForm(true);
+    setError('');
+  };
+
+  const abrirCadastroAPartirDeSolicitacao = (s: SolicitacaoManutencaoDTO) => {
+    setSolicitacaoPendenteId(s.id);
+    setForm({
+      descricao: s.titulo,
+      valor: '',
+      data: new Date().toISOString().slice(0, 10),
+      tipo: 'PREVISTA',
+      prestador: '',
+      instrucoesEmail: '',
+    });
+    setShowForm(true);
+    setError('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!condominioId) return;
     setError('');
     try {
+      const body: Record<string, unknown> = {
+        descricao: form.descricao,
+        valor: Number(form.valor),
+        data: form.data,
+        tipo: form.tipo,
+        prestador: form.prestador || undefined,
+        instrucoesEmail: form.instrucoesEmail || undefined,
+        condominioId: Number(condominioId),
+      };
+      if (solicitacaoPendenteId != null) body.solicitacaoId = solicitacaoPendenteId;
       await api(`/condominios/${condominioId}/manutencoes`, {
         method: 'POST',
-        body: JSON.stringify({
-          descricao: form.descricao,
-          valor: Number(form.valor),
-          data: form.data,
-          tipo: form.tipo,
-          prestador: form.prestador || undefined,
-          instrucoesEmail: form.instrucoesEmail || undefined,
-          condominioId: Number(condominioId),
-        }),
+        body: JSON.stringify(body),
       });
       setForm({ descricao: '', valor: '', data: new Date().toISOString().slice(0, 10), tipo: 'PREVISTA', prestador: '', instrucoesEmail: '' });
+      setSolicitacaoPendenteId(null);
       setShowForm(false);
       load();
     } catch (err: unknown) {
@@ -125,6 +175,21 @@ export default function ManutencoesPage() {
     }
   };
 
+  const reprovarSolicitacao = async (s: SolicitacaoManutencaoDTO) => {
+    if (!condominioId) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      await api(`/condominios/${condominioId}/solicitacoes-manutencao/${s.id}`, { method: 'DELETE' });
+      setRejeitandoSolic(null);
+      load();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao reprovar');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (!condominioId) return <div className="card">Selecione um condomínio.</div>;
   if (loading) return <TableSkeleton rows={6} />;
 
@@ -141,7 +206,7 @@ export default function ManutencoesPage() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => { setShowForm(true); setError(''); }}
+          onClick={openNovaManutencao}
           className="btn-primary flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
@@ -157,14 +222,69 @@ export default function ManutencoesPage() {
         )}
       </AnimatePresence>
 
+      {solicitacoes.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card rounded-2xl border border-amber-200 bg-amber-50/60 p-4 space-y-3"
+        >
+          <h2 className="text-lg font-semibold text-sigac-nav flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-amber-700" />
+            Solicitações do síndico
+          </h2>
+          <p className="text-sm text-slate-600">Aprove para preencher o cadastro completo (a descrição já vem com o texto enviado pelo síndico). Reprove para descartar a solicitação.</p>
+          <ul className="space-y-2">
+            {solicitacoes.map((s) => (
+              <li
+                key={s.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/90 border border-amber-100 px-4 py-3 shadow-sm"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sigac-nav">{s.titulo}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {s.solicitanteNome} · {new Date(s.criadoEm).toLocaleString('pt-BR')}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => abrirCadastroAPartirDeSolicitacao(s)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Aprovar e cadastrar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRejeitandoSolic(s)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Reprovar
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </motion.section>
+      )}
+
       <FormModal
         open={showForm}
-        onClose={() => setShowForm(false)}
-        title="Nova manutenção"
+        onClose={() => {
+          setShowForm(false);
+          setSolicitacaoPendenteId(null);
+        }}
+        title={solicitacaoPendenteId != null ? 'Cadastrar manutenção (solicitação aprovada)' : 'Nova manutenção'}
         icon={<Wrench className="w-5 h-5 text-sigac-accent" />}
         maxWidth="max-w-xl"
       >
         <form onSubmit={handleSubmit} className="space-y-3">
+          {solicitacaoPendenteId != null && (
+            <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+              Título vindo do síndico está no campo descrição; você pode ajustar antes de salvar.
+            </p>
+          )}
           <input className="input" placeholder="Descrição (ex: manutenção no portão)" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} required />
           <input type="number" step="0.01" min="0" className="input" placeholder="Valor (R$)" value={form.valor} onChange={(e) => setForm((f) => ({ ...f, valor: e.target.value }))} required />
           <input type="date" className="input" value={form.data} onChange={(e) => setForm((f) => ({ ...f, data: e.target.value }))} required />
@@ -185,7 +305,7 @@ export default function ManutencoesPage() {
           </div>
           <div className="flex gap-2 pt-2">
             <button type="submit" className="btn-primary">Cadastrar e notificar inquilinos</button>
-            <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>Cancelar</button>
+            <button type="button" className="btn-secondary" onClick={() => { setShowForm(false); setSolicitacaoPendenteId(null); }}>Cancelar</button>
           </div>
         </form>
       </FormModal>
@@ -291,6 +411,19 @@ export default function ManutencoesPage() {
         variant="danger"
         loading={submitting}
         loadingLabel="Excluindo..."
+      />
+
+      <ConfirmModal
+        open={rejeitandoSolic !== null}
+        onClose={() => setRejeitandoSolic(null)}
+        onConfirm={async () => { if (rejeitandoSolic) await reprovarSolicitacao(rejeitandoSolic); }}
+        title="Reprovar solicitação?"
+        description={rejeitandoSolic ? `A solicitação "${rejeitandoSolic.titulo}" será removida e não aparecerá mais.` : ''}
+        confirmLabel="Sim, reprovar"
+        cancelLabel="Cancelar"
+        variant="danger"
+        loading={submitting}
+        loadingLabel="Removendo..."
       />
     </motion.div>
   );
