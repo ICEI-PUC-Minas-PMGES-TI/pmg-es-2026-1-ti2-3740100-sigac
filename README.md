@@ -1,21 +1,26 @@
-# Nome do projeto
+# SIGAC (Sistema Integrado de Gestão e Administração
+Condominial)
 
-Escreva um ou dois parágrafos resumindo o objetivo do seu projeto.
+Este projeto propõe o desenvolvimento de um sistema web (SIGAC) para otimizar e integrar os processos de administração condominial. O objetivo é centralizar o
+cadastro de condomínios e prestadores de serviço, a alocação de pessoal e a gestão de
+gastos em uma única plataforma. Ao final, espera-se como resultado uma aplicação
+funcional que reduza falhas operacionais, otimize o tempo de gestão e aumente a
+transparência administrativa através de um dashboard financeiro.
+
 
 ## Integrantes
 
-* Nome completo do aluno 1
-* Nome completo do aluno 2
-* Nome completo do aluno 3
-* Nome completo do aluno 4
-* Nome completo do aluno 5
-* Nome completo do aluno 6
+* Caio Felix Reis
+* Davi Mendes de Pinho Laudares Rodrigues
+* Luca Moreira Ribeiro Mazala de Araujo
+* Manoel Rodrigues Bezerra Neto
+* Milena Cardoso de Araújo
+
 
 ## Professor
 
-* Nome completo do professor 1
-* Nome completo do professor 2
-* Nome completo do professor 3
+* Michelle Hanne Soares de Andrade
+* Lucca Soares de Paiva Lacerda
 
 ## Instruções de utilização
 
