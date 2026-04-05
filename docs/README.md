@@ -1,25 +1,22 @@
-# TITULO DO PROJETO
+# Sistema Integrado de Gestão e Administração Condominial (SIGAC)
 
 
-**Nome completo do Aluno 1, email do aluno 1**
+* Caio Felix Reis 
 
-**Nome completo do Aluno 2, email do aluno 2**
+* Davi Mendes de Pinho Laudares Rodrigues 
 
-**Nome completo do Aluno 3, email do aluno 3**
+* Luca Moreira Ribeiro Mazala de Araujo 
 
-**Nome completo do Aluno 4, email do aluno 4**
+* Manoel Rodrigues Bezerra Neto 
 
-**Nome completo do Aluno 5, email do aluno 5**
-
-**Nome completo do Aluno 6, email do aluno 6**
-
+* Milena Cardoso de Araújo 
 ---
 
 Professores:
 
-** Prof. Nome do Prof 1 **
+* Michelle Hanne Soares de Andrade 
 
-** Prof. Nome do Prof 2 **
+* Lucca Soares de Paiva Lacerda 
 
 ** Prof. Nome do Prof 3 **
 
@@ -31,67 +28,73 @@ _Instituto de Informática e Ciências Exatas – Pontifícia Universidade Cató
 
 ---
 
-_**Resumo**. Escrever aqui o resumo. O resumo deve contextualizar rapidamente o trabalho, descrever seu objetivo e, ao final, 
-mostrar algum resultado relevante do trabalho (até 10 linhas)._
+_**Resumo**. Este projeto propõe o desenvolvimento de um sistema web (SIGAC) para otimizar e integrar os processos de administração condominial. O objetivo é centralizar o cadastro de condomínios e prestadores de serviço, a alocação de pessoal e a gestão de gastos em uma única plataforma. Ao final, espera-se como resultado uma aplicação funcional que reduza falhas operacionais, otimize o tempo de gestão e aumente a transparência administrativa através de um dashboard financeiro.
 
 ---
 
 
 ## 1. Introdução
 
-_Apresente uma frase introdutória definindo o que será apresentado._
+A documentação a seguir apresenta o projeto e o desenvolvimento do Sistema Integrado de Gestão e Administração Condominial (SIGAC).
 
 ### 1.1 Contextualização
 
-_Na **contextualização**, o aluno deve dizer do que se trata o trabalho, em que área ou contexto se insere.
-A **contextualização** deve ser desenvolvida de algo mais genérico para algo mais específico. 
-A citação de pesquisas quantitativas é bem aceita aqui (corretamente referenciadas)._
+O mercado condominial brasileiro tem passado por uma expressiva expansão nos últimos anos, exigindo cada vez mais profissionalização e soluções tecnológicas robustas. Segundo dados recentes do setor imobiliário, esse mercado movimenta aproximadamente R$ 300 bilhões anualmente em todo o país, refletindo o crescimento contínuo do número de condomínios e a complexidade na gestão desses espaços. A administração predial deixou de ser uma tarefa amadora para se tornar um negócio de grande escala, que envolve desde o controle rigoroso de prestadores de serviço e alocação de pessoal até a prestação de contas de recursos financeiros volumosos, tendo um aumento também no número de empresas especializadas nessa administração. No cenário regional de Belo Horizonte, polo onde este projeto está sendo desenvolvido, o impacto econômico e a demanda por inovações seguem a mesma tendência de alta. Apenas na capital mineira, o setor alcança cifras expressivas, com empresas nascidas na região movimentando mais de R$ 2,5 bilhões anuais em receitas e garantias associadas à administração condominial.
 
 ### 1.2 Problema
 
-_Em seguida o aluno deve caminhar a contextualização para descrever o **problema** que o trabalho trata. 
-O **problema** pode ser algo vivido em uma empresa específica. Neste caso, o aluno deve rapidamente apresentar 
-o cenário de problema da empresa. A empresa só deve ser citada explicitamente se o aluno tiver autorização 
-para tal._
+Apesar desse imenso volume de recursos e da alta exigência por transparência, muitas administradoras e síndicos ainda realizam o controle de tarefas de forma fragmentada, recorrendo a anotações manuais ou planilhas desconexas que aumentam a suscetibilidade a erros e a perda de dados. Nesse contexto de um mercado bilionário, o problema que este projeto pretende resolver é a ineficiência e a descentralização na comunicação e no registro de dados operacionais e financeiros dos condomínios. A motivação nasce da necessidade de criar uma ferramenta que facilite o dia a dia do administrador, reduzindo o tempo gasto com burocracias. O escopo de negócio escolhido foca, portanto, na automação dos processos internos de uma administradora de condomínios ou de um síndico profissional, buscando garantir que a padronização e o acesso rápido à informação sustentem a boa governança exigida hoje pelo setor.
 
 ### 1.3 Objetivo geral
 
-_O aluno deve escrever um pequeno parágrafo ou frase com o **objetivo geral** do trabalho. 
-O objetivo deve ser bem direto, específico e definido com verbos de ação (elaborar, propor, avaliar, comparar, desenvolver, etc.). No caso específico deste projeto, o objetivo deste trabalho é desenvolver um sistema para automação de processos para um problema específico._
+O objetivo geral deste trabalho é desenvolver o Sistema Integrado de Gestão e Administração Condominial (SIGAC), uma aplicação web focada em centralizar e otimizar as rotinas operacionais e financeiras de condomínios.
 
 #### 1.3.1 Objetivos específicos
 
-_Apresente também alguns (pelo menos 4) **objetivos específicos** dependendo de onde você vai querer 
-concentrar sua prática investigativa, ou como você irá aprofundar seu trabalho._
+Como objetivos específicos, destacam-se: 
+
+Unificar e otimizar a gestão operacional: Centralizar o controle de prestadores de serviço e a alocação de funcionários em uma única plataforma, reduzindo o tempo gasto com burocracias manuais e minimizando falhas de comunicação. 
+
+Prover clareza e controle financeiro: Disponibilizar uma visão em tempo real das receitas e despesas do condomínio através de um painel interativo (dashboard), facilitando o monitoramento de gastos e a tomada de decisões estratégicas pela administração.
 
 ### 1.4 Justificativas
 
-_Mostre também as **justificativas** para o 
-desenvolvimento do seu trabalho e, caso deseje, destaque alguma contribuição do trabalho._
+A justificativa para o desenvolvimento do SIGAC baseia-se no gap do mercado de sistemas de gestão, existem opções no mercado mais voltados para as partes de pagamento e opções robustas demais. Considerando o volume bilionário de recursos movimentados por condomínios, a ausência de sistemas unificados gera vulnerabilidades financeiras e operacionais, para os pequenos desse me. A principal contribuição deste trabalho é fornecer uma ferramenta que elimina o retrabalho em tarefas cotidianas (como checagem de escalas e aprovação de fornecedores) e mitiga o risco de perda de dados. O benefício direto para o desafio proposto é a entrega de uma governança transparente, permitindo que gestores tomem decisões baseadas em dados consolidados visualmente em tempo real.
 
 ## 2. Participantes do processo
 
-_Apresente aqui os perfis dos usuários-chave do sistema. Diversas são as informações que podem ser relevantes para a definição dos perfis dos usuários, tais como idade, gênero, aspectos culturais, nível de educação, entre outros. A pesquisa de mercado pode ser uma ferramenta poderosa para se identificar e caracterizar os perfis de usuários. Apresente claramente o papel a ser desempenhado por cada usuário._
+* Gestora de Condomínios (Stakeholder Primário): É a principal operadora do sistema, responsável pela gestão centralizada de múltiplos condomínios. Realiza o cadastro de condomínios e prestadores, faz a alocação de serviços e registra gastos operacionais. Atua de forma estratégica e operacional, garantindo organização e padronização dos processos. Seu papel é essencial para a confiabilidade dos dados do sistema. 
+
+* Funcionários (Stakeholder Primário): São profissionais empregados nos condomínios e vinculados operacionalmente à gestora. Atuam como executores das atividades rotineiras, fornecendo dados cadastrais e cumprindo as alocações definidas. Seu papel está diretamente ligado à execução das tarefas operacionais. Representam a camada operacional dos processos. 
+
+* Síndico do Condomínio (Stakeholder Secundário / Indireto): Atua como agente de acompanhamento e fiscalização da gestão condominial. Não opera diretamente o sistema, mas utiliza as informações para consultar prestadores associados e acompanhar gastos. Seu papel está ligado à transparência e governança do condomínio. Funciona como usuário consultivo dentro do processo. 
 
 ## 3. Modelagem do processo de negócio
 
 ### 3.1. Análise da situação atual
 
-_Apresente uma descrição textual de como os sistemas atuais resolvem o problema que seu projeto se propõe a resolver. Caso sua proposta seja inovadora e não existam processos claramente definidos, **apresente como as tarefas que o seu sistema pretende implementar são executadas atualmente**, mesmo que não se utilize tecnologia computacional._
+Atualmente, os processos de cadastro de condomínios, controle de funcionários e gestão de gastos são realizados de forma descentralizada, utilizando planilhas ou registros manuais, o que dificulta a rastreabilidade das informações e aumenta o risco de inconsistências.
 
 ### 3.2. Descrição geral da proposta de solução
 
-_Apresente aqui uma descrição da sua proposta abordando seus limites e suas ligações com as estratégias do negócio e os objetivos geral e específicos do projeto. Apresente aqui as oportunidades de melhorias._
+A proposta de melhoria baseia-se na transformação dos processos atualmente executados de forma manual ou fragmentada em um fluxo digital integrado por meio do Sistema Integrado de Gestão e Administração Condominial (SIGAC). O modelo TO BE visa eliminar redundâncias, reduzir falhas humanas e centralizar as informações operacionais e financeiras em uma única plataforma. Com a implantação do SIGAC, esses processos passam a ser executados em ambiente digital unificado, permitindo maior controle, padronização e segurança dos dados.
+
+As principais propostas de melhoria são:
+* Digitalização dos cadastros: Os registros de condomínios e funcionários deixam de ser realizados em documentos físicos ou planilhas isoladas e passam a ser armazenados em banco de dados centralizado.
+* Automação da alocação de funcionários: A associação entre funcionários e condomínios passa a ser realizada diretamente no sistema, reduzindo falhas de comunicação e facilitando a visualização das responsabilidades de cada profissional.
+* Padronização do registro de gastos: Todas as despesas passam a ser cadastradas de forma estruturada, contendo informações como valor, data e condomínio vinculado, garantindo organização e rastreabilidade financeira.
+* Disponibilização de informações em tempo real: O sistema possibilita consultas rápidas sobre funcionários alocados e gastos por condomínio, ampliando a transparência para a gestora e para o síndico.
+* Apoio à tomada de decisão: Por meio de um painel financeiro (dashboard), os dados são apresentados de forma visual, permitindo a análise dos custos e a identificação de desvios operacionais.
 
 ### 3.3. Modelagem dos processos
 
-[PROCESSO 1 - Nome do Processo](processo-1-nome-do-processo.md "Detalhamento do Processo 1.")
+[PROCESSO 1 - Cadastro de condomínios ](processo-1-nome-do-processo.md "Detalhamento do Processo 1.")
 
-[PROCESSO 2 - Nome do Processo](processo-2-nome-do-processo.md "Detalhamento do Processo 2.")
+[PROCESSO 2 - Cadastro de funcionários ](processo-2-nome-do-processo.md "Detalhamento do Processo 2.")
 
-[PROCESSO 3 - Nome do Processo](processo-3-nome-do-processo.md "Detalhamento do Processo 3.")
+[PROCESSO 3 - Alocação de funcionários a um condomínio ](processo-3-nome-do-processo.md "Detalhamento do Processo 3.")
 
-[PROCESSO 4 - Nome do Processo](processo-4-nome-do-processo.md "Detalhamento do Processo 4.")
+[PROCESSO 4 - Gestão de gastos por condomínio ](processo-4-nome-do-processo.md "Detalhamento do Processo 4.")
 
 ## 4. Projeto da solução
 
