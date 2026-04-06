@@ -96,6 +96,8 @@ As principais propostas de melhoria são:
 
 [PROCESSO 4 - Gestão de gastos ](processo-4-gestão-de-gastos.md "Detalhamento do Processo 4.")
 
+[PROCESSO 5 - Gestão de avisos ](processo-5-gestão-de-avisos.md "Detalhamento do Processo 5.")
+
 ## 4. Projeto da solução
 
 _O documento a seguir apresenta o detalhamento do projeto da solução. São apresentadas duas seções que descrevem, respectivamente: modelo relacional e tecnologias._
