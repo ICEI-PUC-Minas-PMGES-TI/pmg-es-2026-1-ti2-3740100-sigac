@@ -1,67 +1,81 @@
-### 3.3.1 Processo 1 – NOME DO PROCESSO
+### 3.3.1 Processo 1 – Cadastro de condomínios
 
-_Apresente aqui o nome e as oportunidades de melhoria para o processo 1. 
-Em seguida, apresente o modelo do processo 1, descrito no padrão BPMN._
+**Nome do Processo:** Cadastro de Condomínios
+![Exemplo de um Modelo BPMN do PROCESSO 1](images/Sigac%20BPMN%20Processo1.jpg "Modelo BPMN do Processo 1.")
+**Oportunidades de melhoria:**
 
-![Exemplo de um Modelo BPMN do PROCESSO 1](images/process.png "Modelo BPMN do Processo 1.")
+  * **Automação na Validação:** Integrar o formulário de cadastro com a API da Receita Federal para validar automaticamente o CNPJ e preencher dados básicos (Razão Social, Endereço), reduzindo o tempo e a taxa de erro humano no momento do preenchimento.
+  * **Notificações Dinâmicas:** Implementar alertas via WhatsApp ou SMS para a Administradora do Condomínio no momento em que as pendências ("Solicitar correções") forem geradas, acelerando o retorno e a conclusão do cadastro, em vez de depender exclusivamente do e-mail.
 
 #### Detalhamento das atividades
 
-_Descreva aqui cada uma das propriedades das atividades do processo 1. 
-Devem estar relacionadas com o modelo de processo apresentado anteriormente._
+**Preencher formulário**
 
-_Os tipos de dados a serem utilizados são:_
+| **Campo** | **Tipo** | **Restrições** | **Valor default** |
+| ---                       | ---              | ---                                      | ---               |
+| nome\_condominio           | Caixa de texto   | Obrigatório, máximo de 100 caracteres    |                   |
+| cnpj                      | Caixa de texto   | Obrigatório, formato de CNPJ (XX.XXX.XXX/XXXX-XX) |                   |
+| qtd\_unidades              | Número           | Obrigatório, valor \> 0                   | 1                 |
+| data\_fundacao             | Data             | Não pode ser data futura                 |                   |
+| tipo\_condominio           | Seleção única    | Obrigatório (Residencial, Comercial, Misto)| Residencial       |
+| nome\_sindico              | Caixa de texto   | Obrigatório                              |                   |
+| email\_contato             | Caixa de texto   | Obrigatório, formato de e-mail           |                   |
 
-_* **Área de texto** - campo texto de múltiplas linhas_
+| **Comandos** | **Destino** | **Tipo** |
+| ---                   | ---                                      | ---      |
+| Salvar e Avançar      | Atividade "Anexar documentos"            | default  |
+| Cancelar              | Fim do Processo (Cancelamento)           | cancel   |
 
-_* **Caixa de texto** - campo texto de uma linha_
+**Anexar documentos**
 
-_* **Número** - campo numérico_
+| **Campo** | **Tipo** | **Restrições** | **Valor default** |
+| ---                       | ---              | ---                                      | ---               |
+| cartao\_cnpj               | Arquivo          | Obrigatório, formatos permitidos: PDF, JPG, PNG, máx 5MB |                   |
+| ata\_eleicao\_sindico       | Arquivo          | Obrigatório, formato permitido: PDF, máx 10MB |                   |
+| convencao\_condominial     | Arquivo          | Opcional, formato permitido: PDF, máx 20MB |                   |
+| observacoes\_adicionais    | Área de texto    | Opcional, máximo de 500 caracteres       |                   |
 
-_* **Data** - campo do tipo data (dd-mm-aaaa)_
+| **Comandos** | **Destino** | **Tipo** |
+| ---                   | ---                                      | ---      |
+| Enviar para Validação | Atividade "Validar cadastro" (Dep. Cadastro)| default  |
+| Voltar                | Atividade "Preencher formulário"         |          |
 
-_* **Hora** - campo do tipo hora (hh:mm:ss)_
+**Validar cadastro**
 
-_* **Data e Hora** - campo do tipo data e hora (dd-mm-aaaa, hh:mm:ss)_
+| **Campo** | **Tipo** | **Restrições** | **Valor default** |
+| ---                       | ---              | ---                                      | ---               |
+| dados\_formulario          | Tabela           | Somente leitura (Exibe dados preenchidos)|                   |
+| documentos\_anexados       | Link             | Somente leitura (Links para download)    |                   |
+| parecer\_analise           | Área de texto    | Obrigatório caso o cadastro seja rejeitado|                   |
+| status\_aprovacao          | Seleção única    | Obrigatório (Aprovado, Rejeitado)        |                   |
 
-_* **Imagem** - campo contendo uma imagem_
+| **Comandos** | **Destino** | **Tipo** |
+| ---                   | ---                                      | ---      |
+| Confirmar Análise     | Gateway "Cadastro validado?"             | default  |
+| Salvar Rascunho       | Própria atividade (Validar cadastro)     |          |
 
-_* **Seleção única** - campo com várias opções de valores que são mutuamente exclusivas (tradicional radio button ou combobox)_
+**Solicitar correções**
 
-_* **Seleção múltipla** - campo com várias opções que podem ser selecionadas mutuamente (tradicional checkbox ou listbox)_
+| **Campo** | **Tipo** | **Restrições** | **Valor default** |
+| ---                       | ---              | ---                                      | ---               |
+| motivo\_rejeicao           | Área de texto    | Obrigatório, preenchido na validação     | Parecer da análise|
+| orientacoes\_correcao      | Área de texto    | Obrigatório, máximo de 1000 caracteres   |                   |
 
-_* **Arquivo** - campo de upload de documento_
+| **Comandos** | **Destino** | **Tipo** |
+| ---                   | ---                                      | ---      |
+| Enviar Notificação    | Atividade "Receber e-mail de pendência"  | default  |
+| Cancelar              | Atividade "Validar cadastro"             | cancel   |
 
-_* **Link** - campo que armazena uma URL_
+**Ativar registro e acesso**
 
-_* **Tabela** - campo formado por uma matriz de valores_
+| **Campo** | **Tipo** | **Restrições** | **Valor default** |
+| ---                       | ---              | ---                                      | ---               |
+| id\_sistema\_condominio     | Número           | Gerado automaticamente, somente leitura  |                   |
+| data\_hora\_ativacao        | Data e Hora      | Somente leitura                          | Data/Hora atual   |
+| plano\_contratado          | Seleção única    | Obrigatório (Básico, Intermediário, Pro) | Básico            |
+| enviar\_credenciais        | Seleção múltipla | Marcar para enviar e-mail com senha      | Selecionado       |
 
-
-**Nome da atividade 1**
-
-| **Campo**       | **Tipo**         | **Restrições** | **Valor default** |
-| ---             | ---              | ---            | ---               |
-| [Nome do campo] | [tipo de dados]  |                |                   |
-| ***Exemplo:***  |                  |                |                   |
-| login           | Caixa de Texto   | formato de e-mail |                |
-| senha           | Caixa de Texto   | mínimo de 8 caracteres |           |
-
-| **Comandos**         |  **Destino**                   | **Tipo** |
-| ---                  | ---                            | ---               |
-| [Nome do botão/link] | Atividade/processo de destino  | (default/cancel  ) |
-| ***Exemplo:***       |                                |                   |
-| entrar               | Fim do Processo 1              | default           |
-| cadastrar            | Início do proceso de cadastro  |                   |
-
-
-**Nome da atividade 2**
-
-| **Campo**       | **Tipo**         | **Restrições** | **Valor default** |
-| ---             | ---              | ---            | ---               |
-| [Nome do campo] | [tipo de dados]  |                |                   |
-|                 |                  |                |                   |
-
-| **Comandos**         |  **Destino**                   | **Tipo**          |
-| ---                  | ---                            | ---               |
-| [Nome do botão/link] | Atividade/processo de destino  | (default/cancel/  ) |
-|                      |                                |                   |
+| **Comandos** | **Destino** | **Tipo** |
+| ---                   | ---                                      | ---      |
+| Concluir Ativação     | Fim do Processo                          | default  |
+| Voltar                | Atividade "Validar cadastro"             |          |
