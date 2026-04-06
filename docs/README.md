@@ -88,13 +88,13 @@ As principais propostas de melhoria são:
 
 ### 3.3. Modelagem dos processos
 
-[PROCESSO 1 - Cadastro de condomínios ](processo-1-nome-do-processo.md "Detalhamento do Processo 1.")
+[PROCESSO 1 - Cadastro de condomínios ](processo-1-cadastro-de-condominio.md "Detalhamento do Processo 1.")
 
-[PROCESSO 2 - Cadastro de funcionários ](processo-2-nome-do-processo.md "Detalhamento do Processo 2.")
+[PROCESSO 2 - Cadastro de funcionários ](processo-2-cadastro-de-funcionários.md "Detalhamento do Processo 2.")
 
-[PROCESSO 3 - Alocação de funcionários a um condomínio ](processo-3-nome-do-processo.md "Detalhamento do Processo 3.")
+[PROCESSO 3 - Gestão de Manutenção ](processo-3-gestão-de-manutenção.md "Detalhamento do Processo 3.")
 
-[PROCESSO 4 - Gestão de gastos por condomínio ](processo-4-nome-do-processo.md "Detalhamento do Processo 4.")
+[PROCESSO 4 - Gestão de gastos ](processo-4-gestão-de-gastos.md "Detalhamento do Processo 4.")
 
 ## 4. Projeto da solução
 
