@@ -5,7 +5,7 @@
 **Oportunidades de melhoria:**
 
   * **Automação na Validação:** Integrar o formulário de cadastro com a API da Receita Federal para validar automaticamente o CNPJ e preencher dados básicos (Razão Social, Endereço), reduzindo o tempo e a taxa de erro humano no momento do preenchimento.
-  * **Notificações Dinâmicas:** Implementar alertas via WhatsApp ou SMS para a Administradora do Condomínio no momento em que as pendências ("Solicitar correções") forem geradas, acelerando o retorno e a conclusão do cadastro, em vez de depender exclusivamente do e-mail.
+
 
 #### Detalhamento das atividades
 
