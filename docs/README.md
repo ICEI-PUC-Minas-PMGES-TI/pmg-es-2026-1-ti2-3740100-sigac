@@ -16,7 +16,9 @@ Professores:
 
 * Michelle Hanne Soares de Andrade 
 
-* Lucca Soares de Paiva Lacerda 
+* Lucca Soares de Paiva Lacerda
+
+* Luiz Carlos da Silva
 
 ** Prof. Nome do Prof 3 **
 
