@@ -1,7 +1,7 @@
 ### 3.3.1 Processo 1 – Cadastro de condomínios
 
 **Nome do Processo:** Cadastro de Condomínios
-![Exemplo de um Modelo BPMN do PROCESSO 1](images/Sigac%20BPMN%20Processo1.jpg "Modelo BPMN do Processo 1.")
+![Exemplo de um Modelo BPMN do PROCESSO 1](images/Processo%20de%20cadastro%20de%20condomínios.png "Modelo BPMN do Processo 1.")
 **Oportunidades de melhoria:**
 
   * **Automação na Validação:** Integrar o formulário de cadastro com a API da Receita Federal para validar automaticamente o CNPJ e preencher dados básicos (Razão Social, Endereço), reduzindo o tempo e a taxa de erro humano no momento do preenchimento.
