@@ -1,18 +1,25 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wrench, Send } from 'lucide-react';
 import { api, ManutencaoDTO } from '@/lib/api';
 import { TableSkeleton } from '@/components/LoadingSpinner';
 import { FormModal } from '@/components/FormModal';
 
+function monthNamePtBr(mes: number) {
+  return new Date(2000, mes - 1, 1).toLocaleString('pt-BR', { month: 'long' });
+}
+
 export default function SindicoManutencoesPage() {
   const searchParams = useSearchParams();
   const condominioId = searchParams.get('condominioId');
   const [list, setList] = useState<ManutencaoDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const now = useMemo(() => new Date(), []);
+  const [anoFiltro, setAnoFiltro] = useState<number | 'todos'>(now.getFullYear());
+  const [mesFiltro, setMesFiltro] = useState<number | 'todos'>(now.getMonth() + 1);
   const [showSolic, setShowSolic] = useState(false);
   const [titulo, setTitulo] = useState('');
   const [error, setError] = useState('');
@@ -50,6 +57,17 @@ export default function SindicoManutencoesPage() {
   if (!condominioId) return <div className="card">Selecione um condomínio.</div>;
   if (loading) return <TableSkeleton rows={6} />;
 
+  const filteredList = (anoFiltro === 'todos' && mesFiltro === 'todos')
+    ? list
+    : list.filter((m) => {
+      const d = new Date(m.data);
+      const y = d.getFullYear();
+      const mm = d.getMonth() + 1;
+      if (anoFiltro !== 'todos' && y !== anoFiltro) return false;
+      if (mesFiltro !== 'todos' && mm !== mesFiltro) return false;
+      return true;
+    });
+
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -70,6 +88,45 @@ export default function SindicoManutencoesPage() {
           <Send className="w-5 h-5" />
           Solicitar manutenção
         </motion.button>
+      </div>
+
+      <div className="flex flex-wrap gap-4">
+        <label className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-600">Ano</span>
+          <select
+            className="input w-28 bg-white/90"
+            value={anoFiltro}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === 'todos') {
+                setAnoFiltro('todos');
+                setMesFiltro('todos');
+              } else {
+                setAnoFiltro(Number(v));
+              }
+            }}
+          >
+            <option value="todos">Todos</option>
+            {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-600">Mês</span>
+          <select
+            className="input w-40 bg-white/90"
+            value={mesFiltro}
+            onChange={(e) => setMesFiltro(e.target.value === 'todos' ? 'todos' : Number(e.target.value))}
+            disabled={anoFiltro === 'todos'}
+            title={anoFiltro === 'todos' ? 'Selecione um ano para filtrar por mês' : undefined}
+          >
+            <option value="todos">Todos</option>
+            {[1,2,3,4,5,6,7,8,9,10,11,12].map((m) => (
+              <option key={m} value={m}>{monthNamePtBr(m)}</option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <AnimatePresence mode="wait">
@@ -120,7 +177,7 @@ export default function SindicoManutencoesPage() {
               </tr>
             </thead>
             <tbody>
-              {list.map((m, i) => (
+              {filteredList.map((m, i) => (
                 <motion.tr
                   key={m.id}
                   initial={{ opacity: 0 }}
@@ -142,7 +199,7 @@ export default function SindicoManutencoesPage() {
             </tbody>
           </table>
         </div>
-        {list.length === 0 && <p className="p-8 text-slate-500 text-center">Nenhuma manutenção cadastrada.</p>}
+        {filteredList.length === 0 && <p className="p-8 text-slate-500 text-center">Nenhuma manutenção encontrada para o filtro selecionado.</p>}
       </motion.div>
     </motion.div>
   );

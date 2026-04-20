@@ -51,6 +51,17 @@ export function IconWallet(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+/** Ícone de cédula/dinheiro (para arrecadação). */
+export function IconBanknote(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={sizeDefault} height={sizeDefault} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden {...props}>
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <circle cx="12" cy="12" r="2" />
+      <path d="M6 10h.01M6 14h.01M18 10h.01M18 14h.01" />
+    </svg>
+  );
+}
+
 export function IconWrench(props: SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={sizeDefault} height={sizeDefault} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden {...props}>

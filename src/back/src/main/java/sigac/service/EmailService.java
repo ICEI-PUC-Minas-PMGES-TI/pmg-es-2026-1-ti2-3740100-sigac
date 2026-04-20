@@ -248,13 +248,15 @@ public class EmailService {
     }
 
     /**
-     * Envia relatório de gastos em PDF para um ou mais destinatários (HTML responsivo + anexo).
+     * Envia relatório financeiro (arrecadação x despesas) em PDF para um ou mais destinatários (HTML responsivo + anexo).
      */
     public void enviarRelatorioGastosPdf(
             List<String> destinatarios,
             String nomeCondominio,
             String periodoLegivel,
-            String totalMesFormatado,
+            String arrecadadoMesFormatado,
+            String despesasMesFormatado,
+            String saldoMesFormatado,
             byte[] pdfBytes,
             String nomeArquivoAnexo) throws MessagingException {
 
@@ -264,7 +266,7 @@ public class EmailService {
         if (pdfBytes == null || pdfBytes.length < 5) {
             throw new MessagingException("PDF inválido ou vazio");
         }
-        String assunto = "SIGAC - Relatório de gastos — " + nomeCondominio + " (" + periodoLegivel + ")";
+        String assunto = "SIGAC - Relatório financeiro — " + nomeCondominio + " (" + periodoLegivel + ")";
 
         String html = """
             <!DOCTYPE html>
@@ -272,7 +274,7 @@ public class EmailService {
             <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width,initial-scale=1">
-              <title>Relatório de gastos</title>
+              <title>Relatório financeiro</title>
             </head>
             <body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#eef2f7;">
             <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:#eef2f7;padding:36px 16px;">
@@ -281,7 +283,7 @@ public class EmailService {
               <tr>
                 <td style="background:linear-gradient(135deg,#1b3266 0%%,#2f6ce6 55%%,#0ea5e9 100%%);padding:36px 28px;text-align:center;">
                   <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:rgba(255,255,255,0.82);">SIGAC</p>
-                  <p style="margin:0;font-size:26px;font-weight:800;letter-spacing:-0.03em;color:#ffffff;line-height:1.2;">Relatório de gastos</p>
+                  <p style="margin:0;font-size:26px;font-weight:800;letter-spacing:-0.03em;color:#ffffff;line-height:1.2;">Relatório financeiro</p>
                   <p style="margin:12px 0 0;font-size:14px;color:rgba(255,255,255,0.92);line-height:1.45;">Condomínio administrado com transparência</p>
                 </td>
               </tr>
@@ -289,7 +291,7 @@ public class EmailService {
                 <td style="padding:36px 32px 32px;">
                   <p style="margin:0 0 10px;color:#64748b;font-size:14px;">Olá,</p>
                   <p style="margin:0 0 24px;color:#334155;font-size:16px;line-height:1.65;">
-                    Segue em <strong>anexo</strong> o relatório de gastos do condomínio, referente ao período indicado abaixo.
+                    Segue em <strong>anexo</strong> o relatório financeiro do condomínio, referente ao período indicado abaixo.
                   </p>
                   <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:linear-gradient(180deg,#f8fafc 0%%,#f1f5f9 100%%);border-radius:16px;border:1px solid #e2e8f0;margin-bottom:22px;">
                     <tr><td style="padding:22px 24px;">
@@ -307,17 +309,29 @@ public class EmailService {
                           <td style="padding:0 0 20px;"><span style="display:inline-block;background:#0f172a;color:#fff;padding:10px 16px;border-radius:12px;font-size:15px;font-weight:600;">%s</span></td>
                         </tr>
                         <tr>
-                          <td style="padding:0 0 6px;color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Total do mês (resumo)</td>
+                          <td style="padding:0 0 6px;color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Arrecadado no mês</td>
                         </tr>
                         <tr>
-                          <td style="padding:0;"><span style="display:inline-block;background:linear-gradient(135deg,#d1fae5 0%%,#a7f3d0 100%%);color:#065f46;padding:12px 18px;border-radius:12px;font-size:18px;font-weight:800;border:1px solid #6ee7b7;">%s</span></td>
+                          <td style="padding:0 0 14px;"><span style="display:inline-block;background:linear-gradient(135deg,#d1fae5 0%%,#a7f3d0 100%%);color:#065f46;padding:12px 18px;border-radius:12px;font-size:18px;font-weight:800;border:1px solid #6ee7b7;">%s</span></td>
+                        </tr>
+                        <tr>
+                          <td style="padding:0 0 6px;color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Despesas no mês</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:0 0 14px;"><span style="display:inline-block;background:linear-gradient(135deg,#fee2e2 0%%,#fecaca 100%%);color:#991b1b;padding:12px 18px;border-radius:12px;font-size:18px;font-weight:800;border:1px solid #fca5a5;">%s</span></td>
+                        </tr>
+                        <tr>
+                          <td style="padding:0 0 6px;color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Saldo do mês</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:0;"><span style="display:inline-block;background:#0f172a;color:#fff;padding:12px 18px;border-radius:12px;font-size:18px;font-weight:800;border:1px solid #0f172a;">%s</span></td>
                         </tr>
                       </table>
                     </td></tr>
                   </table>
                   <div style="padding:18px 20px;background:#eff6ff;border-radius:14px;border:1px solid #bfdbfe;margin-bottom:8px;">
                     <p style="margin:0;color:#1e40af;font-size:13px;line-height:1.55;">
-                      O arquivo PDF contém o detalhamento (funcionários, manutenções e gastos com produtos) para prestação de contas ou arquivo do financeiro.
+                      O PDF contém o detalhamento das despesas (funcionários, manutenções e gastos com produtos) e o resumo financeiro do período.
                     </p>
                   </div>
                   <p style="margin:28px 0 0;padding-top:22px;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;text-align:center;line-height:1.5;">
@@ -335,7 +349,9 @@ public class EmailService {
                 .formatted(
                         escapeHtml(nomeCondominio),
                         escapeHtml(periodoLegivel),
-                        escapeHtml(totalMesFormatado)
+                        escapeHtml(arrecadadoMesFormatado),
+                        escapeHtml(despesasMesFormatado),
+                        escapeHtml(saldoMesFormatado)
                 );
 
         List<InternetAddress> toAddresses = new ArrayList<>();
@@ -363,7 +379,7 @@ public class EmailService {
         String attachmentName = nomeArquivoAnexo != null && !nomeArquivoAnexo.isBlank() ? nomeArquivoAnexo : "relatorio-gastos.pdf";
         helper.addAttachment(attachmentName, new ByteArrayResource(pdfBytes), "application/pdf");
         mailSender.send(message);
-        log.info("Relatório de gastos enviado por e-mail para {} destinatário(s)", toAddresses.size());
+        log.info("Relatório financeiro enviado por e-mail para {} destinatário(s)", toAddresses.size());
     }
 
     private static String escapeHtml(String s) {

@@ -150,14 +150,35 @@ export interface DashboardGastosDTO {
   condominioId: number;
   nomeCondominio: string;
   mesAno: { year: number; month: number };
+  totalArrecadado: number;
   totalFuncionarios: number;
   totalProdutos: number;
   totalManutencoes: number;
   totalGeral: number;
+  saldoMes: number;
   itens: { categoria: string; valor: number }[];
   manutencoesDoMes: ManutencaoResumoDTO[];
   funcionarios: FuncionarioResumoDTO[];
   gastosProdutosDoMes: GastoProdutoResumoDTO[];
+}
+
+export interface ArrecadacaoMensalDTO {
+  id?: number;
+  ano: number;
+  mes: number;
+  valor: number;
+  condominioId: number;
+}
+
+export interface ArrecadacaoMensalLogDTO {
+  id: number;
+  alteradoEm: string;
+  userId?: number | null;
+  userNome?: string | null;
+  userEmail?: string | null;
+  valorAnterior?: number | null;
+  valorNovo: number;
+  acao: 'CRIAR' | 'ALTERAR' | string;
 }
 
 export interface UserDTO {

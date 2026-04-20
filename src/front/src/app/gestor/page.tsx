@@ -45,7 +45,6 @@ export default function GestorDashboardPage() {
   const [modalEmailRelatorio, setModalEmailRelatorio] = useState(false);
   const [emailsRelatorio, setEmailsRelatorio] = useState<string[]>(['']);
   const relatorioMenuRef = useRef<HTMLDivElement>(null);
-
   const relatorioRows = useMemo(() => {
     const funcionarios = (data?.funcionarios && data.funcionarios.length > 0)
       ? data.funcionarios
@@ -67,6 +66,8 @@ export default function GestorDashboardPage() {
     () => data?.itens?.map((i) => ({ name: i.categoria, value: i.valor })) ?? [],
     [data]
   );
+
+  const saldoNegativo = (data?.saldoMes ?? 0) < 0;
 
   useEffect(() => {
     if (!condominioId) return;
@@ -113,7 +114,7 @@ export default function GestorDashboardPage() {
 
     doc.setFontSize(16);
     doc.setTextColor(27, 50, 102);
-    doc.text('SIGAC - Relatório de gastos do condomínio', 14, 20);
+    doc.text('SIGAC - Relatório financeiro do condomínio', 14, 20);
 
     doc.setFontSize(12);
     doc.setTextColor(80, 80, 80);
@@ -130,6 +131,8 @@ export default function GestorDashboardPage() {
 
     doc.setFontSize(11);
     doc.setTextColor(60, 60, 60);
+    doc.text(`Arrecadação: ${fmtMoney(data.totalArrecadado)}`, 14, posY);
+    posY += 5;
     doc.text(`Funcionários: ${fmtMoney(data.totalFuncionarios)}`, 14, posY);
     posY += 5;
     doc.text(`Produtos: ${fmtMoney(data.totalProdutos)}`, 14, posY);
@@ -137,8 +140,13 @@ export default function GestorDashboardPage() {
     doc.text(`Manutenções: ${fmtMoney(data.totalManutencoes)}`, 14, posY);
     posY += 5;
     doc.setFontSize(12);
-    doc.setTextColor(16, 185, 129);
-    doc.text(`TOTAL DO MÊS: ${fmtMoney(data.totalGeral)}`, 14, posY);
+    doc.setTextColor(220, 38, 38);
+    doc.text(`DESPESAS DO MÊS: ${fmtMoney(data.totalGeral)}`, 14, posY);
+    posY += 6;
+    doc.setFontSize(12);
+    if ((data.saldoMes ?? 0) < 0) doc.setTextColor(220, 38, 38);
+    else doc.setTextColor(16, 185, 129);
+    doc.text(`SALDO DO MÊS: ${fmtMoney(data.saldoMes)}`, 14, posY);
 
     posY += 12;
     doc.setFontSize(12);
@@ -200,7 +208,7 @@ export default function GestorDashboardPage() {
       margin: { left: 14, right: 14 },
     });
 
-    const nomeArquivoBase = `relatorio-gastos-${data.nomeCondominio.replace(/\s+/g, '-').toLowerCase()}-${ano}-${String(mes).padStart(2, '0')}`;
+    const nomeArquivoBase = `relatorio-financeiro-${data.nomeCondominio.replace(/\s+/g, '-').toLowerCase()}-${ano}-${String(mes).padStart(2, '0')}`;
     const filename = `${nomeArquivoBase}.pdf`;
     const blob = doc.output('blob') as Blob;
     return { blob, filename };
@@ -265,9 +273,9 @@ export default function GestorDashboardPage() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-6">
-      <h1 className="text-2xl font-bold text-sigac-nav mb-1">Dashboard e relatório mensal</h1>
+      <h1 className="text-2xl font-bold text-sigac-nav mb-1">Dashboard financeiro e relatório mensal</h1>
       <p className="text-sm text-slate-600 mb-6">
-        Use os indicadores e tabelas abaixo para acompanhar gastos e montar relatórios para o financeiro.
+        Use os indicadores e tabelas abaixo para acompanhar arrecadação, despesas e saldo do condomínio.
       </p>
       <div className="flex flex-wrap items-end gap-4 mb-6 justify-between">
         <div className="flex flex-wrap gap-4">
@@ -415,7 +423,17 @@ export default function GestorDashboardPage() {
       ) : (
         <>
           {/* Cards de totais */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+            <div className="card border-l-4 border-l-emerald-600 bg-gradient-to-br from-emerald-50 to-white animate-slide-up">
+              <p className="text-sm font-medium text-slate-600">Arrecadação</p>
+              <p className="text-xl font-bold text-emerald-800 mt-1">{fmtMoney(data.totalArrecadado)}</p>
+              <p className="text-xs text-slate-500 mt-1">Valor único do mês</p>
+            </div>
+            <div className={`card border-l-4 ${saldoNegativo ? 'border-l-red-600' : 'border-l-slate-900'} bg-gradient-to-br from-slate-50 to-white animate-slide-up`}>
+              <p className="text-sm font-medium text-slate-600">Saldo do mês</p>
+              <p className={`text-xl font-bold mt-1 ${saldoNegativo ? 'text-red-700' : 'text-slate-900'}`}>{fmtMoney(data.saldoMes)}</p>
+              <p className="text-xs text-slate-500 mt-1">{saldoNegativo ? 'Prejuízo' : 'Lucro'}</p>
+            </div>
             <div className="card border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-white animate-slide-up" style={{ animationDelay: '0.05s' }}>
               <p className="text-sm font-medium text-slate-600">Funcionários</p>
               <p className="text-xl font-bold text-sigac-nav mt-1">{fmtMoney(data.totalFuncionarios)}</p>
@@ -432,7 +450,7 @@ export default function GestorDashboardPage() {
               <p className="text-xs text-slate-500 mt-1">{manutencoes.length} manutenção(ões)</p>
             </div>
             <div className="card border-0 bg-gradient-to-br from-sigac-nav to-sigac-accent text-white shadow-lg animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <p className="text-sm font-medium text-white/90">Total do mês</p>
+              <p className="text-sm font-medium text-white/90">Despesas do mês</p>
               <p className="text-2xl font-bold mt-1">{fmtMoney(data.totalGeral)}</p>
             </div>
           </div>
@@ -440,7 +458,7 @@ export default function GestorDashboardPage() {
           {/* Gráfico */}
           {chartData.length > 0 && (
             <div className="card mb-6 overflow-visible animate-slide-up" style={{ height: 360 }}>
-              <h2 className="text-lg font-semibold text-sigac-nav mb-2">Distribuição dos gastos</h2>
+              <h2 className="text-lg font-semibold text-sigac-nav mb-2">Distribuição das despesas</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart margin={{ top: 0, right: 8, bottom: 0, left: 8 }}>
                   <Pie data={chartData} cx="50%" cy="45%" innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value">
@@ -571,10 +589,12 @@ export default function GestorDashboardPage() {
 Período: ${new Date(ano, mes - 1).toLocaleString('pt-BR', { month: 'long' })}/${ano}
 
 Totais:
+• Arrecadação: ${fmtMoney(data.totalArrecadado)}
 • Funcionários: ${fmtMoney(data.totalFuncionarios)} (${funcionarios.length} funcionário(s))
 • Produtos: ${fmtMoney(data.totalProdutos)} (${gastosProdutos.length} lançamento(s))
 • Manutenções: ${fmtMoney(data.totalManutencoes)} (${manutencoes.length} manutenção(ões))
-• TOTAL DO MÊS: ${fmtMoney(data.totalGeral)}
+• DESPESAS DO MÊS: ${fmtMoney(data.totalGeral)}
+• SALDO DO MÊS: ${fmtMoney(data.saldoMes)} (${saldoNegativo ? 'Prejuízo' : 'Lucro'})
 
 Detalhes disponíveis nas tabelas acima (funcionários, manutenções do mês e gastos com produtos).`}
             </div>

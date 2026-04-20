@@ -7,6 +7,7 @@ import sigac.domain.Manutencao;
 import sigac.dto.*;
 import sigac.exception.ForbiddenException;
 import sigac.exception.NotFoundException;
+import sigac.repository.ArrecadacaoMensalRepository;
 import sigac.repository.CondominioRepository;
 import sigac.repository.FuncionarioRepository;
 import sigac.repository.GastoProdutoRepository;
@@ -32,6 +33,7 @@ public class DashboardService {
 
     private final CondominioRepository condominioRepository;
     private final EmailService emailService;
+    private final ArrecadacaoMensalRepository arrecadacaoMensalRepository;
 
     public DashboardService(
             CondominioRepository condominioRepository,
@@ -39,12 +41,14 @@ public class DashboardService {
             FuncionarioRepository funcionarioRepository,
             GastoProdutoRepository gastoProdutoRepository,
             ManutencaoRepository manutencaoRepository,
+            ArrecadacaoMensalRepository arrecadacaoMensalRepository,
             CondominioAcessoService acessoService) {
         this.condominioRepository = condominioRepository;
         this.emailService = emailService;
         this.funcionarioRepository = funcionarioRepository;
         this.gastoProdutoRepository = gastoProdutoRepository;
         this.manutencaoRepository = manutencaoRepository;
+        this.arrecadacaoMensalRepository = arrecadacaoMensalRepository;
         this.acessoService = acessoService;
     }
 
@@ -64,6 +68,10 @@ public class DashboardService {
         LocalDate inicio = ym.atDay(1);
         LocalDate fim = ym.atEndOfMonth();
 
+        BigDecimal totalArrecadado = arrecadacaoMensalRepository.findByCondominioIdAndAnoAndMes(condominioId, ano, mes)
+                .map(a -> a.getValor())
+                .orElse(BigDecimal.ZERO);
+
         BigDecimal totalFunc = funcionarioRepository.findByCondominioId(condominioId).stream()
                 .map(Funcionario::getValorMensal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -77,6 +85,7 @@ public class DashboardService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalGeral = totalFunc.add(totalProd).add(totalMan);
+        BigDecimal saldoMes = totalArrecadado.subtract(totalGeral);
 
         List<ItemGastoDTO> itens = new ArrayList<>();
         ItemGastoDTO i1 = new ItemGastoDTO(); i1.setCategoria("Funcionários"); i1.setValor(totalFunc); itens.add(i1);
@@ -96,10 +105,12 @@ public class DashboardService {
         dto.setCondominioId(c.getId());
         dto.setNomeCondominio(c.getNome());
         dto.setMesAno(ym);
+        dto.setTotalArrecadado(totalArrecadado);
         dto.setTotalFuncionarios(totalFunc);
         dto.setTotalProdutos(totalProd);
         dto.setTotalManutencoes(totalMan);
         dto.setTotalGeral(totalGeral);
+        dto.setSaldoMes(saldoMes);
         dto.setItens(itens);
         dto.setManutencoesDoMes(manutencoesDoMes);
         dto.setFuncionarios(funcionariosDto);
@@ -138,7 +149,9 @@ public class DashboardService {
         DashboardGastosDTO dash = relatorioGastosMensais(condominioId, ano, mes);
         String periodoLegivel = Month.of(mes).getDisplayName(TextStyle.FULL_STANDALONE, new Locale("pt", "BR")) + " de " + ano;
         NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"));
-        String totalFmt = nf.format(dash.getTotalGeral());
+        String arrecadadoFmt = nf.format(dash.getTotalArrecadado());
+        String despesasFmt = nf.format(dash.getTotalGeral());
+        String saldoFmt = nf.format(dash.getSaldoMes());
 
         String nomeAnexo = nomeArquivoOriginal != null ? nomeArquivoOriginal.trim() : "";
         if (nomeAnexo.isEmpty()) nomeAnexo = "relatorio-gastos.pdf";
@@ -149,7 +162,9 @@ public class DashboardService {
                 lista,
                 dash.getNomeCondominio(),
                 periodoLegivel,
-                totalFmt,
+                arrecadadoFmt,
+                despesasFmt,
+                saldoFmt,
                 pdfBytes,
                 nomeAnexo
         );

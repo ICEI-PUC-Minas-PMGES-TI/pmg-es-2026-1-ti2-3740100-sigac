@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { api, CondominioDTO } from '@/lib/api';
 import { Logo } from '@/components/Logo';
-import { IconDashboard, IconUser, IconUsers, IconWallet, IconWrench, IconLogout } from '@/components/Icons';
+import { IconBanknote, IconDashboard, IconUser, IconUsers, IconWallet, IconWrench, IconLogout } from '@/components/Icons';
 
 export default function SindicoLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout, isSindico } = useAuth();
@@ -51,6 +51,7 @@ export default function SindicoLayout({ children }: { children: React.ReactNode 
     { href: `/sindico/funcionarios?condominioId=${cid}`, label: 'Funcionários', active: pathname.startsWith('/sindico/funcionarios'), icon: IconUser },
     { href: `/sindico/inquilinos?condominioId=${cid}`, label: 'Inquilinos', active: pathname.startsWith('/sindico/inquilinos'), icon: IconUsers },
     { href: `/sindico/gastos?condominioId=${cid}`, label: 'Gastos', active: pathname.startsWith('/sindico/gastos'), icon: IconWallet },
+    { href: `/sindico/arrecadacao?condominioId=${cid}`, label: 'Arrecadação', active: pathname.startsWith('/sindico/arrecadacao'), icon: IconBanknote },
     { href: `/sindico/manutencoes?condominioId=${cid}`, label: 'Manutenções', active: pathname.startsWith('/sindico/manutencoes'), icon: IconWrench },
   ];
 

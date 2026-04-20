@@ -8,10 +8,14 @@ public class DashboardGastosDTO {
     private Long condominioId;
     private String nomeCondominio;
     private YearMonth mesAno;
+    /** Valor arrecadado no mês (informado manualmente - único por mês/condomínio). */
+    private BigDecimal totalArrecadado;
     private BigDecimal totalFuncionarios;
     private BigDecimal totalProdutos;
     private BigDecimal totalManutencoes;
     private BigDecimal totalGeral;
+    /** Saldo do mês = arrecadado - despesas (totalGeral). */
+    private BigDecimal saldoMes;
     private List<ItemGastoDTO> itens;
     private List<ManutencaoResumoDTO> manutencoesDoMes;
     private List<FuncionarioResumoDTO> funcionarios;
@@ -23,6 +27,8 @@ public class DashboardGastosDTO {
     public void setNomeCondominio(String nomeCondominio) { this.nomeCondominio = nomeCondominio; }
     public YearMonth getMesAno() { return mesAno; }
     public void setMesAno(YearMonth mesAno) { this.mesAno = mesAno; }
+    public BigDecimal getTotalArrecadado() { return totalArrecadado; }
+    public void setTotalArrecadado(BigDecimal totalArrecadado) { this.totalArrecadado = totalArrecadado; }
     public BigDecimal getTotalFuncionarios() { return totalFuncionarios; }
     public void setTotalFuncionarios(BigDecimal totalFuncionarios) { this.totalFuncionarios = totalFuncionarios; }
     public BigDecimal getTotalProdutos() { return totalProdutos; }
@@ -31,6 +37,8 @@ public class DashboardGastosDTO {
     public void setTotalManutencoes(BigDecimal totalManutencoes) { this.totalManutencoes = totalManutencoes; }
     public BigDecimal getTotalGeral() { return totalGeral; }
     public void setTotalGeral(BigDecimal totalGeral) { this.totalGeral = totalGeral; }
+    public BigDecimal getSaldoMes() { return saldoMes; }
+    public void setSaldoMes(BigDecimal saldoMes) { this.saldoMes = saldoMes; }
     public List<ItemGastoDTO> getItens() { return itens; }
     public void setItens(List<ItemGastoDTO> itens) { this.itens = itens; }
     public List<ManutencaoResumoDTO> getManutencoesDoMes() { return manutencoesDoMes; }

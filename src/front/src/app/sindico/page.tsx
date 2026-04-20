@@ -72,11 +72,12 @@ export default function SindicoDashboardPage() {
         .filter((g) => mesAnoMatch(g.data, ano, mes))
         .map((g) => ({ id: g.id, descricao: g.descricao, valor: g.valor, data: g.data, lojaFornecedor: g.lojaFornecedor }));
   const chartData = data?.itens?.map((i) => ({ name: i.categoria, value: i.valor })) ?? [];
+  const saldoNegativo = (data?.saldoMes ?? 0) < 0;
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-6">
-      <h1 className="text-2xl font-bold text-sigac-nav mb-1">Visão de gastos (somente leitura)</h1>
-      <p className="text-sm text-slate-600 mb-6">Indicadores e detalhes para acompanhamento e relatório ao financeiro.</p>
+      <h1 className="text-2xl font-bold text-sigac-nav mb-1">Visão financeira (somente leitura)</h1>
+      <p className="text-sm text-slate-600 mb-6">Acompanhe arrecadação, despesas e saldo mensal do condomínio.</p>
       <div className="flex flex-wrap gap-4 mb-6">
         <label className="flex items-center gap-2">
           <span className="text-sm font-medium text-slate-600">Ano</span>
@@ -99,7 +100,17 @@ export default function SindicoDashboardPage() {
         <div className="card text-slate-600">Nenhum dado para o período.</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+            <div className="card border-l-4 border-l-emerald-600 bg-gradient-to-br from-emerald-50 to-white animate-slide-up">
+              <p className="text-sm font-medium text-slate-600">Arrecadação</p>
+              <p className="text-xl font-bold text-emerald-800 mt-1">{fmtMoney(data.totalArrecadado)}</p>
+              <p className="text-xs text-slate-500 mt-1">Valor único do mês</p>
+            </div>
+            <div className={`card border-l-4 ${saldoNegativo ? 'border-l-red-600' : 'border-l-slate-900'} bg-gradient-to-br from-slate-50 to-white animate-slide-up`}>
+              <p className="text-sm font-medium text-slate-600">Saldo do mês</p>
+              <p className={`text-xl font-bold mt-1 ${saldoNegativo ? 'text-red-700' : 'text-slate-900'}`}>{fmtMoney(data.saldoMes)}</p>
+              <p className="text-xs text-slate-500 mt-1">{saldoNegativo ? 'Prejuízo' : 'Lucro'}</p>
+            </div>
             <div className="card border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-white animate-slide-up">
               <p className="text-sm font-medium text-slate-600">Funcionários</p>
               <p className="text-xl font-bold text-sigac-nav mt-1">{fmtMoney(data.totalFuncionarios)}</p>
@@ -116,13 +127,13 @@ export default function SindicoDashboardPage() {
               <p className="text-xs text-slate-500 mt-1">{manutencoes.length} manutenção(ões)</p>
             </div>
             <div className="card border-0 bg-gradient-to-br from-sigac-nav to-sigac-accent text-white shadow-lg animate-slide-up">
-              <p className="text-sm font-medium text-white/90">Total do mês</p>
+              <p className="text-sm font-medium text-white/90">Despesas do mês</p>
               <p className="text-2xl font-bold mt-1">{fmtMoney(data.totalGeral)}</p>
             </div>
           </div>
           {chartData.length > 0 && (
             <div className="card mb-6 overflow-visible animate-slide-up" style={{ height: 360 }}>
-              <h2 className="text-lg font-semibold text-sigac-nav mb-2">Distribuição dos gastos</h2>
+              <h2 className="text-lg font-semibold text-sigac-nav mb-2">Distribuição das despesas</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart margin={{ top: 0, right: 8, bottom: 0, left: 8 }}>
                   <Pie data={chartData} cx="50%" cy="45%" innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value">
@@ -247,10 +258,12 @@ export default function SindicoDashboardPage() {
 Período: ${new Date(ano, mes - 1).toLocaleString('pt-BR', { month: 'long' })}/${ano}
 
 Totais:
+• Arrecadação: ${fmtMoney(data.totalArrecadado)}
 • Funcionários: ${fmtMoney(data.totalFuncionarios)} (${funcionarios.length} funcionário(s))
 • Produtos: ${fmtMoney(data.totalProdutos)} (${gastosProdutos.length} lançamento(s))
 • Manutenções: ${fmtMoney(data.totalManutencoes)} (${manutencoes.length} manutenção(ões))
-• TOTAL DO MÊS: ${fmtMoney(data.totalGeral)}
+• DESPESAS DO MÊS: ${fmtMoney(data.totalGeral)}
+• SALDO DO MÊS: ${fmtMoney(data.saldoMes)} (${saldoNegativo ? 'Prejuízo' : 'Lucro'})
 
 Detalhes nas tabelas acima.`}
             </div>

@@ -40,6 +40,9 @@ public class Condominio {
     @OneToMany(mappedBy = "condominio", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Manutencao> manutencoes = new ArrayList<>();
 
+    @OneToMany(mappedBy = "condominio", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ArrecadacaoMensal> arrecadacoesMensais = new ArrayList<>();
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNome() { return nome; }
@@ -60,4 +63,6 @@ public class Condominio {
     public void setGastosProdutos(List<GastoProduto> gastosProdutos) { this.gastosProdutos = gastosProdutos; }
     public List<Manutencao> getManutencoes() { return manutencoes; }
     public void setManutencoes(List<Manutencao> manutencoes) { this.manutencoes = manutencoes; }
+    public List<ArrecadacaoMensal> getArrecadacoesMensais() { return arrecadacoesMensais; }
+    public void setArrecadacoesMensais(List<ArrecadacaoMensal> arrecadacoesMensais) { this.arrecadacoesMensais = arrecadacoesMensais; }
 }

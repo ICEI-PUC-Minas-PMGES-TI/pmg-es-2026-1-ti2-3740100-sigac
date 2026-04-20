@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { api, CondominioDTO, SolicitacaoManutencaoContagemDTO } from '@/lib/api';
 import { Logo } from '@/components/Logo';
-import { IconDashboard, IconBuilding, IconUser, IconUsers, IconWallet, IconWrench, IconLogout } from '@/components/Icons';
+import { IconBanknote, IconDashboard, IconBuilding, IconUser, IconUsers, IconWallet, IconWrench, IconLogout } from '@/components/Icons';
 
 export default function GestorLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout, isGestor } = useAuth();
@@ -76,6 +76,7 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
     { href: `/gestor/funcionarios?condominioId=${cid}`, label: 'Funcionários', active: pathname.startsWith('/gestor/funcionarios'), icon: IconUser, badge: 0 },
     { href: `/gestor/inquilinos?condominioId=${cid}`, label: 'Inquilinos', active: pathname.startsWith('/gestor/inquilinos'), icon: IconUsers, badge: 0 },
     { href: `/gestor/gastos?condominioId=${cid}`, label: 'Gastos (produtos)', active: pathname.startsWith('/gestor/gastos'), icon: IconWallet, badge: 0 },
+    { href: `/gestor/arrecadacao?condominioId=${cid}`, label: 'Arrecadação', active: pathname.startsWith('/gestor/arrecadacao'), icon: IconBanknote, badge: 0 },
     { href: `/gestor/manutencoes?condominioId=${cid}`, label: 'Manutenções', active: pathname.startsWith('/gestor/manutencoes'), icon: IconWrench, badge: solicManutencaoCount },
   ];
 

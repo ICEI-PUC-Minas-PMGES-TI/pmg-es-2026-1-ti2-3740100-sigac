@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Receipt, Pencil, Trash2, Plus } from 'lucide-react';
 import { api, GastoProdutoDTO } from '@/lib/api';
@@ -9,11 +9,18 @@ import { TableSkeleton } from '@/components/LoadingSpinner';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import { FormModal } from '@/components/FormModal';
 
+function monthNamePtBr(mes: number) {
+  return new Date(2000, mes - 1, 1).toLocaleString('pt-BR', { month: 'long' });
+}
+
 export default function GastosPage() {
   const searchParams = useSearchParams();
   const condominioId = searchParams.get('condominioId');
   const [list, setList] = useState<GastoProdutoDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const now = useMemo(() => new Date(), []);
+  const [anoFiltro, setAnoFiltro] = useState<number | 'todos'>(now.getFullYear());
+  const [mesFiltro, setMesFiltro] = useState<number | 'todos'>(now.getMonth() + 1);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ descricao: '', valor: '', data: new Date().toISOString().slice(0, 10), lojaFornecedor: '' });
   const [error, setError] = useState('');
@@ -30,6 +37,18 @@ export default function GastosPage() {
   useEffect(() => {
     load();
   }, [condominioId]);
+
+  const filteredList = useMemo(() => {
+    if (anoFiltro === 'todos' && mesFiltro === 'todos') return list;
+    return list.filter((g) => {
+      const d = new Date(g.data);
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      if (anoFiltro !== 'todos' && y !== anoFiltro) return false;
+      if (mesFiltro !== 'todos' && m !== mesFiltro) return false;
+      return true;
+    });
+  }, [list, anoFiltro, mesFiltro]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +146,45 @@ export default function GastosPage() {
         </motion.button>
       </div>
 
+      <div className="flex flex-wrap gap-4">
+        <label className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-600">Ano</span>
+          <select
+            className="input w-28 bg-white/90"
+            value={anoFiltro}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === 'todos') {
+                setAnoFiltro('todos');
+                setMesFiltro('todos');
+              } else {
+                setAnoFiltro(Number(v));
+              }
+            }}
+          >
+            <option value="todos">Todos</option>
+            {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-600">Mês</span>
+          <select
+            className="input w-40 bg-white/90"
+            value={mesFiltro}
+            onChange={(e) => setMesFiltro(e.target.value === 'todos' ? 'todos' : Number(e.target.value))}
+            disabled={anoFiltro === 'todos'}
+            title={anoFiltro === 'todos' ? 'Selecione um ano para filtrar por mês' : undefined}
+          >
+            <option value="todos">Todos</option>
+            {[1,2,3,4,5,6,7,8,9,10,11,12].map((m) => (
+              <option key={m} value={m}>{monthNamePtBr(m)}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
       <AnimatePresence mode="wait">
         {error && (
           <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="toast-error">
@@ -186,7 +244,7 @@ export default function GastosPage() {
               </tr>
             </thead>
             <tbody>
-              {list.map((g, i) => (
+              {filteredList.map((g, i) => (
                 <motion.tr
                   key={g.id}
                   initial={{ opacity: 0 }}
@@ -213,9 +271,9 @@ export default function GastosPage() {
             </tbody>
           </table>
         </div>
-        {list.length === 0 && (
+        {filteredList.length === 0 && (
           <p className="p-8 text-slate-500 text-center">
-            Nenhum gasto registrado. Clique em <strong>Registrar gasto</strong> para começar.
+            Nenhum gasto encontrado para o filtro selecionado.
           </p>
         )}
       </motion.div>
