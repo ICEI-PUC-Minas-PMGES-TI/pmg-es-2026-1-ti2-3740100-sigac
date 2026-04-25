@@ -104,6 +104,8 @@ As principais propostas de melhoria são:
 
 _O documento a seguir apresenta o detalhamento do projeto da solução. São apresentadas duas seções que descrevem, respectivamente: modelo relacional e tecnologias._
 
+[Detalhamento das atividades](relatorio-detalhamento-atividades.md "Detalhamento das atividades")
+
 [Projeto da solução](solution-design.md "Detalhamento do projeto da solução: modelo relacional e tecnologias.")
 
 
