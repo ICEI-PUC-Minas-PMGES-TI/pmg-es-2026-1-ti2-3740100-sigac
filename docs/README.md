@@ -20,7 +20,6 @@ Professores:
 
 * Luiz Carlos da Silva
 
-** Prof. Nome do Prof 3 **
 
 ---
 
