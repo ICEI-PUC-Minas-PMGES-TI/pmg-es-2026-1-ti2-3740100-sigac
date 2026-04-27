@@ -85,3 +85,7 @@
 | --- | --- | --- |
 | Concluir Análise | Fim do Processo | default |
 | Imprimir Tela | Própria atividade | |
+
+![Tela de gestão financeira](ui/images/gf1.jpeg "Tela de gestao financeira")
+![Tela de gestão financeira](ui/images/gf2.jpeg "Tela de gestao financeira")
+
