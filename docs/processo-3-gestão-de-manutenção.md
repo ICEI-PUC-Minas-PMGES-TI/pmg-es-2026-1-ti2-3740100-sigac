@@ -2,7 +2,7 @@
 
 **Nome do Processo:** Gestão de Manutenção
 
-![Exemplo de um Modelo BPMN do PROCESSO 3].(images/manutenção.png)
+![Gestão Manutenção](images/manutenção.jpg)
 
 **Oportunidades de melhoria:**
 
