@@ -126,3 +126,5 @@ E possui a ação principal **"Nova manutenção"**, que inicia o cadastro.
 | --- | --- | --- |
 | Exportar PDF | Download do relatório | default |
 | Arquivar e Concluir | Final do processo | default |
+
+![Tela de manutenções](ui/images/tela_manutencoes.jpeg "Tela de manutencoes")
