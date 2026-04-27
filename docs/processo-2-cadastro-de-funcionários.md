@@ -1,57 +1,63 @@
 ### 3.3.2 Processo 2 – Cadastro de funcionários
 
+**Nome do Processo (UI):** Cadastro de Funcionários
 
-![Exemplo de um Modelo BPMN do PROCESSO 2](images/Sigac%20BPMN%20Prestadores.jpg "Modelo BPMN do Processo 2.")
+**Observação de alinhamento com UI:** O wireframe disponível (docs/ui/_ui.md, seção **3.2 Tela de funcionários**) descreve uma tela que lista funcionários com os campos **nome**, **função** e **valor mensal**, além de ações (ex.: editar/remover) e um botão para **cadastrar novo funcionário**. Não há no UI atual campos de prestador (CPF/CNPJ, especialidade, contrato etc.).
 
-**Nome do Processo:** Cadastro e Histórico de Prestadores de Serviço
-
-**Oportunidades de melhoria:**
-
-  * **Consulta Automática de Antecedentes/Receita Federal:** Integrar o formulário de cadastro com APIs públicas para validar automaticamente o CPF/CNPJ do prestador e preencher dados básicos de forma automática, economizando tempo do Gestor.
-  * **Notificação de Atualização:** Implementar um envio de notificação automática (via e-mail ou push no aplicativo) para o Síndico assim que o Gestor concluir a etapa de "Editar dados do prestador", garantindo que o Síndico saiba que há um histórico novo para visualizar.
+Assim, este processo foi ajustado para refletir o que a UI propõe: **CRUD simples de funcionários**.
 
 #### Detalhamento das atividades
 
-**Cadastrar dados do prestador**
+**Listar funcionários (Gestor)**
 
-| **Campo** | **Tipo** | **Restrições** | **Valor default** |
-| --- | --- | --- | --- |
-| nome\_completo | Caixa de texto | Obrigatório, máximo de 100 caracteres | |
-| cpf\_cnpj | Caixa de texto | Obrigatório, formato de CPF ou CNPJ | |
-| especialidade | Seleção única | Obrigatório (Ex: Elétrica, Limpeza, Hidráulica) | Manutenção Geral |
-| telefone\_contato | Caixa de texto | Obrigatório, formato (XX) XXXXX-XXXX | |
-| data\_contratacao | Data | Não pode ser data futura | |
-| contrato\_prestacao | Arquivo | Opcional, formatos permitidos: PDF, máx 5MB | |
+> Corresponde à tela **"Tela de funcionários"** (UI 3.2).
+
+| **Dados exibidos (tabela)** | **Tipo** | **Observações** |
+| --- | --- | --- |
+| nome | Texto | Somente leitura na listagem |
+| funcao | Texto | Somente leitura na listagem |
+| valor_mensal | Moeda | Somente leitura na listagem |
+| acoes | Botões/ícones | Editar / Remover |
 
 | **Comandos** | **Destino** | **Tipo** |
 | --- | --- | --- |
-| Salvar e Continuar | Atividade "Editar dados do prestador" | default |
-| Cancelar | Fim do Processo | cancel |
+| Novo funcionário | Modal/Form de cadastro de funcionário | default |
+| Editar (linha) | Modal/Form de edição de funcionário | default |
+| Remover (linha) | Confirmação de remoção | cancel |
 
-**Editar dados do prestador**
-
-| **Campo** | **Tipo** | **Restrições** | **Valor default** |
-| --- | --- | --- | --- |
-| status\_cadastro | Seleção única | Obrigatório (Ativo, Inativo, Suspenso) | Ativo |
-| avaliacao\_servico | Número | De 1 a 5 | 5 |
-| foto\_prestador | Imagem | Opcional, formatos permitidos: JPG, PNG, máx 2MB | |
-| observacoes\_gestor | Área de texto | Opcional, máximo de 500 caracteres | |
-
-| **Comandos** | **Destino** | **Tipo** |
-| --- | --- | --- |
-| Atualizar Dados | Atividade "Visualizar histórico" (Síndico) | default |
-| Voltar | Atividade "Cadastrar dados do prestador" | |
-
-**Visualizar histórico**
+**Cadastrar funcionário (Gestor)**
 
 | **Campo** | **Tipo** | **Restrições** | **Valor default** |
 | --- | --- | --- | --- |
-| dados\_cadastrais | Área de texto | Somente leitura (Exibe o resumo do cadastro) | |
-| historico\_servicos | Tabela | Somente leitura (Lista de serviços prestados e datas) | |
-| data\_hora\_consulta | Data e Hora | Somente leitura, gerado pelo sistema | Data/Hora atual |
-| link\_pasta\_nuvem | Link | URL para a pasta com documentos físicos escaneados | |
+| nome | Caixa de texto | Obrigatório, máximo de 100 caracteres | |
+| funcao | Caixa de texto/Seleção | Obrigatório, máximo de 50 caracteres | |
+| valor_mensal | Número (moeda) | Obrigatório, valor > 0 | 0.00 |
 
 | **Comandos** | **Destino** | **Tipo** |
 | --- | --- | --- |
-| Concluir | Fim do Processo | default |
-| Imprimir Histórico | Própria atividade (Gera PDF do histórico) | |
+| Salvar | Retorna para listagem com funcionário incluído | default |
+| Cancelar | Retorna para listagem sem alterações | cancel |
+
+**Editar funcionário (Gestor)**
+
+| **Campo** | **Tipo** | **Restrições** | **Valor default** |
+| --- | --- | --- | --- |
+| nome | Caixa de texto | Obrigatório, máximo de 100 caracteres | (pré-preenchido) |
+| funcao | Caixa de texto/Seleção | Obrigatório, máximo de 50 caracteres | (pré-preenchido) |
+| valor_mensal | Número (moeda) | Obrigatório, valor > 0 | (pré-preenchido) |
+
+| **Comandos** | **Destino** | **Tipo** |
+| --- | --- | --- |
+| Salvar alterações | Retorna para listagem com dados atualizados | default |
+| Cancelar | Retorna para listagem sem alterações | cancel |
+
+**Remover funcionário (Gestor)**
+
+| **Campo** | **Tipo** | **Restrições** | **Valor default** |
+| --- | --- | --- | --- |
+| confirmacao | Confirmação | Obrigatório confirmar ação | |
+
+| **Comandos** | **Destino** | **Tipo** |
+| --- | --- | --- |
+| Confirmar remoção | Retorna para listagem sem o funcionário | default |
+| Cancelar | Retorna para listagem sem alterações | cancel |
