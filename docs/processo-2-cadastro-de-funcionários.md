@@ -2,7 +2,6 @@
 
 ![Exemplo de um Modelo BPMN do PROCESSO 2](images/Sigac%20BPMN%20Prestadores.jpg "Modelo BPMN do Processo 2.")
 
-![Tela de funcionários](images/tela_funcionarios.png "Tela de funcionários")
 
 **Nome do Processo (UI):** Cadastro de Funcionários
 
@@ -65,3 +64,5 @@ Assim, este processo foi ajustado para refletir o que a UI propõe: **CRUD simpl
 | --- | --- | --- |
 | Confirmar remoção | Retorna para listagem sem o funcionário | default |
 | Cancelar | Retorna para listagem sem alterações | cancel |
+
+![Tela de funcionários](images/tela_funcionarios.jpeg "Tela de funcionários")
