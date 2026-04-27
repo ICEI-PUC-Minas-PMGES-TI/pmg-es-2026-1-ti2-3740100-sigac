@@ -2,7 +2,7 @@
 
 **Nome do Processo:** Gestão Financeira (Receitas e Despesas)
 
-![Exemplo de um Modelo BPMN do PROCESSO 4](images/Sigac%20BPMN%20G%26F.jpg "Modelo BPMN do Processo 4.")
+![Gestão Financeira](images/gestao financeira.jpg)
 
 **Telas relacionadas (UI):**
 
