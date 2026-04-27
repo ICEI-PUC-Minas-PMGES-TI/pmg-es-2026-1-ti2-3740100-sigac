@@ -5,20 +5,22 @@
 
 **Oportunidades de melhoria:**
 
-  * **Templates pré-definidos:** Criar uma biblioteca de modelos de mensagens prontos na etapa "Redigir aviso" (ex: falta de água, manutenção de elevador, dedetização), agilizando o trabalho do Gestor e garantindo padronização na comunicação.
-  * **Múltiplos Canais de Envio:** Além de "Selecionar emails", expandir a notificação para disparos via WhatsApp, SMS ou notificações push no aplicativo do condomínio, garantindo que a informação chegue mais rápido aos Inquilinos.
+  * **Templates pré-definidos:** Criar uma biblioteca de modelos de mensagens prontos na etapa "Redigir aviso" (ex: falta de água, manutenção de elevador, dedetização), agilizando o trabalho do [...]
+  * **Múltiplos Canais de Envio:** Além de "Selecionar emails", expandir a notificação para disparos via WhatsApp, SMS ou notificações push no aplicativo do condomínio, garantindo que a informa[...]
 
 #### Detalhamento das atividades
 
 **Programar manutenção**
 
+> **Alinhamento com UI:** Corresponde ao fluxo do Gestor na **"Tela de manutenções"** (UI 3.5), ao acionar **"Nova manutenção"**.
+
 | **Campo** | **Tipo** | **Restrições** | **Valor default** |
 | --- | --- | --- | --- |
-| tipo\_manutencao | Seleção única | Obrigatório (Preventiva, Corretiva, Limpeza, etc.) | Preventiva |
-| area\_afetada | Seleção múltipla | Obrigatório (Elevadores, Garagem, Áreas Comuns, etc.) | |
-| data\_inicio | Data e Hora | Obrigatório, não pode ser no passado | |
-| data\_fim\_prevista | Data e Hora | Obrigatório, deve ser posterior à data de início | |
-| responsavel\_tecnico | Caixa de texto | Opcional | |
+| tipo_manutencao | Seleção única | Obrigatório (Preventiva, Corretiva, Limpeza, etc.) | Preventiva |
+| area_afetada | Seleção múltipla | Obrigatório (Elevadores, Garagem, Áreas Comuns, etc.) | |
+| data_inicio | Data e Hora | Obrigatório, não pode ser no passado | |
+| data_fim_prevista | Data e Hora | Obrigatório, deve ser posterior à data de início | |
+| responsavel_tecnico | Caixa de texto | Opcional | |
 
 | **Comandos** | **Destino** | **Tipo** |
 | --- | --- | --- |
@@ -27,12 +29,14 @@
 
 **Redigir aviso**
 
+> **Alinhamento com UI:** **A definir no wireframe.** Recomenda-se criar uma tela/modal específica no fluxo do Gestor em `docs/ui/_ui.md` (ex.: **"Tela de avisos / Redigir aviso"**).
+
 | **Campo** | **Tipo** | **Restrições** | **Valor default** |
 | --- | --- | --- | --- |
-| usar\_template | Seleção única | Opcional (Lista de modelos pré-cadastrados) | |
-| assunto\_aviso | Caixa de texto | Obrigatório, máximo de 100 caracteres | Aviso de Manutenção |
-| corpo\_mensagem | Área de texto | Obrigatório, mínimo de 20 caracteres | |
-| arquivo\_anexo | Arquivo | Opcional, formatos: PDF, JPG, PNG, máx 5MB | |
+| usar_template | Seleção única | Opcional (Lista de modelos pré-cadastrados) | |
+| assunto_aviso | Caixa de texto | Obrigatório, máximo de 100 caracteres | Aviso de Manutenção |
+| corpo_mensagem | Área de texto | Obrigatório, mínimo de 20 caracteres | |
+| arquivo_anexo | Arquivo | Opcional, formatos: PDF, JPG, PNG, máx 5MB | |
 
 | **Comandos** | **Destino** | **Tipo** |
 | --- | --- | --- |
@@ -41,12 +45,14 @@
 
 **Selecionar emails para notificação**
 
+> **Alinhamento com UI:** **A definir no wireframe.** Recomenda-se criar uma tela/modal no fluxo do Gestor (ex.: **"Selecionar destinatários"**) em `docs/ui/_ui.md`.
+
 | **Campo** | **Tipo** | **Restrições** | **Valor default** |
 | --- | --- | --- | --- |
-| publico\_alvo | Seleção única | Obrigatório (Todos, Bloco Específico, Apenas Síndico) | Todos |
-| lista\_destinatarios | Tabela | Somente leitura (Exibe nome e e-mail filtrados) | |
-| agendar\_disparo | Data e Hora | Opcional (Se vazio, envia imediatamente) | |
-| solicitar\_leitura | Seleção múltipla | Marcar para exigir confirmação de leitura | |
+| publico_alvo | Seleção única | Obrigatório (Todos, Bloco Específico, Apenas Síndico) | Todos |
+| lista_destinatarios | Tabela | Somente leitura (Exibe nome e e-mail filtrados) | |
+| agendar_disparo | Data e Hora | Opcional (Se vazio, envia imediatamente) | |
+| solicitar_leitura | Seleção múltipla | Marcar para exigir confirmação de leitura | |
 
 | **Comandos** | **Destino** | **Tipo** |
 | --- | --- | --- |
@@ -57,12 +63,14 @@
 
 *(Esta atividade ocorre na caixa de entrada ou aplicativo do Inquilino)*
 
+> **Alinhamento com UI:** **A definir no wireframe.** Recomenda-se criar um fluxo/perfil de **Inquilino** em `docs/ui/_ui.md` com uma tela de **"Notificações / Caixa de entrada"**.
+
 | **Campo** | **Tipo** | **Restrições** | **Valor default** |
 | --- | --- | --- | --- |
 | remetente | Caixa de texto | Somente leitura | Sistema do Condomínio |
-| conteudo\_aviso | Área de texto | Somente leitura (Mensagem redigida pelo gestor) | |
+| conteudo_aviso | Área de texto | Somente leitura (Mensagem redigida pelo gestor) | |
 | anexo | Link | Somente leitura (Link para baixar documento, se houver) | |
-| confirmar\_ciencia | Seleção múltipla | Obrigatório se o Gestor exigiu confirmação | |
+| confirmar_ciencia | Seleção múltipla | Obrigatório se o Gestor exigiu confirmação | |
 
 | **Comandos** | **Destino** | **Tipo** |
 | --- | --- | --- |
