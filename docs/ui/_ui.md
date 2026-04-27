@@ -171,6 +171,21 @@ O botao de nova manutencao inicia o cadastro de uma nova atividade de manutencao
 
 ![Tela de manutencoes](./images/tela_manutencoes.jpeg)
 
+### 3.6 Tela de avisos
+
+Esta tela centraliza os avisos do condominio para comunicacao com moradores e inquilinos.
+
+Os principais elementos exibidos sao:
+
+- lista de avisos cadastrados
+- titulo e descricao do aviso
+- data de publicacao
+- acoes de gerenciamento
+
+O botao de novo aviso inicia o cadastro de uma nova comunicacao.
+
+![Tela de avisos](./images/avisos.png)
+
 ## 4. Fluxo do Sindico
 
 O fluxo do sindico, conforme o wireframe apresentado, utiliza a mesma estrutura principal de navegacao do gestor, com foco na leitura dos dados consolidados do condominio.
@@ -224,3 +239,5 @@ Elementos esperados na tela:
 - acao de exportar/emitir relatorio (PDF, Excel, CSV)
 
 ![Gestao financeira - tela 2](./images/gf2.jpeg)
+
+
