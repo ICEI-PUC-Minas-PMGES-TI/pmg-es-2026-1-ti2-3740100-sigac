@@ -4,7 +4,7 @@
 
 ![Exemplo de um Modelo BPMN do PROCESSO 1](images/Processo%20de%20cadastro%20de%20condomínios.png "Modelo BPMN do Processo 1.")
 
-![Tela - Criação de condomínio](ui/images/criar_condominio.jpeg "Criação de condomínio")
+
 
 **Observação de alinhamento com UI:** Este processo foi ajustado para refletir a tela **"Criação de condomínio"** do wireframe (docs/ui/_ui.md, seção 2.2), que contém apenas os campos **nome**, **endereço** e **CNPJ**. Campos adicionais (ex.: quantidade de unidades, data de fundação, tipo de condomínio, síndico, anexos e validações internas) podem existir como regras/cadastros complementares em processos futuros, mas **não fazem parte** desta tela conforme o UI atual.
 
@@ -34,3 +34,5 @@
 
 - Condomínio criado e exibido na lista da **Página inicial do administrador**.
 - Condomínio disponível para ações subsequentes do Admin, como **vincular gestores e síndicos** (processos relacionados ao fluxo 2.3+ do UI).
+  
+![Tela - Criação de condomínio](ui/images/criar_condominio.jpeg "Criação de condomínio")
