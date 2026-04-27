@@ -191,30 +191,36 @@ O diferencial aqui e a identificacao do usuario como sindico na barra superior e
 
 ## 5. Gestao Financeira
 
-Esta secao detalha as telas relacionadas a gestao financeira do condominio. O objetivo e permitir o controle e o acompanhamento dos dados financeiros (receitas, despesas e indicadores), apoiando a tomada de decisao.
+Esta secao detalha as telas relacionadas a gestao financeira do condominio, alinhadas ao **Processo 4 - Gestao Financeira (Receitas e Despesas)** (ver documento do processo em `docs/processo-4-gestao-financeira.md`).
 
-### 5.1 Tela de gestao financeira (visao geral)
+### 5.1 Tela de gestao financeira (visao geral / dashboard)
 
-Esta tela apresenta uma visao consolidada da saude financeira do condominio, reunindo informacoes essenciais para analise rapida.
+Tela de visao consolidada para acompanhamento do periodo, apoiando analises rapidas e tomada de decisao. Relaciona-se principalmente a etapa **Visualizar relatorio** do processo.
 
 Elementos esperados na tela:
 
 - filtros de periodo (mes/ano)
 - cards/resumo com totais (ex.: total de receitas, total de despesas e saldo)
-- area de graficos para comparacao e distribuicao por categorias
-- atalhos/acoes para navegar para detalhes (ex.: lancamentos, categorias, exportacao)
+- area de graficos (ex.: distribuicao por categorias)
+- atalho para **Gerar relatorio**
 
 ![Gestao financeira - tela 1](./images/gf1.jpeg)
 
-### 5.2 Tela de gestao financeira (detalhamento)
+### 5.2 Tela de gestao financeira (lancamentos / detalhamento)
 
-Esta tela aprofunda os dados financeiros exibidos na visao geral, permitindo consultar lancamentos e entender a composicao dos valores.
+Tela para detalhar e operar os registros financeiros do periodo, alinhada as atividades do processo:
+
+- **Registrar receita**
+- **Registrar despesa**
+- **Anexar comprovante**
+- **Gerar relatorio**
 
 Elementos esperados na tela:
 
-- lista/tabela de lancamentos financeiros com data, descricao, categoria e valor
-- opcoes de busca e filtros (categoria, tipo, status)
-- acoes para visualizar detalhes e/ou editar lancamentos (quando permitido)
-- opcao de exportar/gerar relatorio
+- lista/tabela de lancamentos (receitas e despesas) com data, descricao, categoria e valor
+- busca e filtros (categoria, tipo, status)
+- acao para registrar **Receita** e **Despesa**
+- suporte a anexos (nota fiscal / comprovante) por lancamento
+- acao de exportar/emitir relatorio (PDF, Excel, CSV)
 
 ![Gestao financeira - tela 2](./images/gf2.jpeg)
