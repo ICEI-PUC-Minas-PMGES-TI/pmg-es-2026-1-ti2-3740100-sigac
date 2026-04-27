@@ -9,6 +9,7 @@ Os fluxos estao organizados na seguinte ordem:
 2. Admin
 3. Gestor
 4. Sindico
+5. Gestao Financeira
 
 ## 1. Fluxo de Login
 
@@ -187,3 +188,33 @@ Esta tela mostra a visao principal do sindico sobre o condominio. A organizacao 
 O diferencial aqui e a identificacao do usuario como sindico na barra superior e no rodape lateral, deixando claro o contexto do perfil autenticado.
 
 ![Dashboard do sindico](./images/dashboard_sindico.jpeg)
+
+## 5. Gestao Financeira
+
+Esta secao detalha as telas relacionadas a gestao financeira do condominio. O objetivo e permitir o controle e o acompanhamento dos dados financeiros (receitas, despesas e indicadores), apoiando a tomada de decisao.
+
+### 5.1 Tela de gestao financeira (visao geral)
+
+Esta tela apresenta uma visao consolidada da saude financeira do condominio, reunindo informacoes essenciais para analise rapida.
+
+Elementos esperados na tela:
+
+- filtros de periodo (mes/ano)
+- cards/resumo com totais (ex.: total de receitas, total de despesas e saldo)
+- area de graficos para comparacao e distribuicao por categorias
+- atalhos/acoes para navegar para detalhes (ex.: lancamentos, categorias, exportacao)
+
+![Gestao financeira - tela 1](./images/gf1.jpeg)
+
+### 5.2 Tela de gestao financeira (detalhamento)
+
+Esta tela aprofunda os dados financeiros exibidos na visao geral, permitindo consultar lancamentos e entender a composicao dos valores.
+
+Elementos esperados na tela:
+
+- lista/tabela de lancamentos financeiros com data, descricao, categoria e valor
+- opcoes de busca e filtros (categoria, tipo, status)
+- acoes para visualizar detalhes e/ou editar lancamentos (quando permitido)
+- opcao de exportar/gerar relatorio
+
+![Gestao financeira - tela 2](./images/gf2.jpeg)
