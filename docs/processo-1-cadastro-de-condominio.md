@@ -2,7 +2,7 @@
 
 **Nome do Processo:** Cadastro de Condomínios
 
-<img width="1299" height="762" alt="image" src="https://github.com/user-attachments/assets/ff44f002-4d25-4482-b66d-5d71b953cf04" />
+![Cadastro de Condomínios](images/condominio.png)
 
 
 
