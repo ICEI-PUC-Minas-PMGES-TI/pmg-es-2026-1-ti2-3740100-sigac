@@ -2,9 +2,11 @@
 
 ![Exemplo de um Modelo BPMN do PROCESSO 2](images/Sigac%20BPMN%20Prestadores.jpg "Modelo BPMN do Processo 2.")
 
+![Tela de funcionários](images/tela_funcionarios.png "Tela de funcionários")
+
 **Nome do Processo (UI):** Cadastro de Funcionários
 
-**Observação de alinhamento com UI:** O wireframe disponível (docs/ui/_ui.md, seção **3.2 Tela de funcionários**) descreve uma tela que lista funcionários com os campos **nome**, **função** e[...] 
+**Observação de alinhamento com UI:** O wireframe disponível (docs/ui/_ui.md, seção **3.2 Tela de funcionários**) descreve uma tela que lista funcionários com os campos **nome**, **função**, **valor_mensal** e ações. Não há referência a “prestadores” na UI.
 
 Assim, este processo foi ajustado para refletir o que a UI propõe: **CRUD simples de funcionários**.
 
