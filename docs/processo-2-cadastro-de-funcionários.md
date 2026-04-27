@@ -1,7 +1,6 @@
 ### 3.3.2 Processo 2 – Cadastro de funcionários
 
-
-Captura de tela 2026-04-27 110944.png
+![Exemplo de um Modelo BPMN do PROCESSO 2](images/Sigac%20BPMN%20Captura de tela 2026-04-27 110944.png "Modelo BPMN do Processo 2.")
 
 **Nome do Processo (UI):** Cadastro de Funcionários
 
