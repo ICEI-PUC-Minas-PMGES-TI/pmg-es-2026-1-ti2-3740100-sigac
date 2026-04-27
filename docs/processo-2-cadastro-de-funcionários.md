@@ -1,8 +1,10 @@
 ### 3.3.2 Processo 2 – Cadastro de funcionários
 
+![Exemplo de um Modelo BPMN do PROCESSO 2](images/Sigac%20BPMN%20Prestadores.jpg "Modelo BPMN do Processo 2.")
+
 **Nome do Processo (UI):** Cadastro de Funcionários
 
-**Observação de alinhamento com UI:** O wireframe disponível (docs/ui/_ui.md, seção **3.2 Tela de funcionários**) descreve uma tela que lista funcionários com os campos **nome**, **função** e **valor mensal**, além de ações (ex.: editar/remover) e um botão para **cadastrar novo funcionário**. Não há no UI atual campos de prestador (CPF/CNPJ, especialidade, contrato etc.).
+**Observação de alinhamento com UI:** O wireframe disponível (docs/ui/_ui.md, seção **3.2 Tela de funcionários**) descreve uma tela que lista funcionários com os campos **nome**, **função** e[...] 
 
 Assim, este processo foi ajustado para refletir o que a UI propõe: **CRUD simples de funcionários**.
 
