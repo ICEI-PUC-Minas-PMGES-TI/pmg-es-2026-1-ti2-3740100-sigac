@@ -1,4 +1,4 @@
-### 3.3.3 Processo 3 – Gestão de manuteção
+### 3.3.3 Processo 3 – Gestão de manutenção
 
 **Nome do Processo:** Gestão de Manutenção
 
@@ -6,84 +6,123 @@
 
 **Oportunidades de melhoria:**
 
-  * **Notificações automáticas integradas:** Implementar o envio automático de alertas (SMS ou e-mail) para o Prestador de serviços assim que a manutenção for criada, e para o Síndico quando o status for atualizado, reduzindo falhas de comunicação.
-  * **Envio mobile de comprovativos:** Permitir que o próprio Prestador anexe os comprovativos e notas fiscais diretamente através de uma aplicação móvel no local da "Execução do serviço", automatizando a etapa de "Registrar comprovante" que atualmente depende do Gestor.
+  * **Notificações automáticas integradas:** Implementar o envio automático de alertas (SMS ou e-mail) para o Prestador de serviços assim que a manutenção for criada, e para o Síndico quando o status for atualizado ou o serviço for finalizado.
+  * **Envio mobile de comprovativos:** Permitir que o próprio Prestador anexe os comprovativos e notas fiscais diretamente através de uma aplicação móvel no local da "Execução do serviço".
 
-#### Detalhamento das atividades
+#### Alinhamento com as telas do UI (Wireframe)
 
-**Criar manutenção e associar prestador**
+De acordo com o documento **docs/ui/_ui.md**, a **Gestão de Manutenções** ocorre principalmente na **Tela de Manutenções (Fluxo do Gestor – item 3.5)**, que apresenta uma listagem em tabela com os campos:
+
+- **data**
+- **descricao**
+- **tipo**
+- **prestador**
+- **valor**
+- **acoes**
+
+E possui a ação principal **"Nova manutenção"**, que inicia o cadastro.
+
+> Observação: o wireframe não detalha telas específicas do prestador. Portanto, as etapas de execução do serviço e envio de comprovantes permanecem previstas como parte do processo, mas no escopo da interface atual elas podem ser tratadas como ações/estados acompanhados pelo Gestor (e consultáveis pelo Síndico).
+
+---
+
+#### Detalhamento das atividades (mapeado para UI)
+
+### 1) Listar manutenções (Tela de Manutenções – Gestor)
+
+**Objetivo:** permitir ao Gestor acompanhar e gerenciar todas as manutenções do condomínio.
+
+**Componentes (conforme UI):**
+
+| **Coluna** | **Origem no processo** | **Observações** |
+| --- | --- | --- |
+| data | data_agendamento / data_criacao | Exibir a data de abertura ou agendamento (definir padrão no sistema). |
+| descricao | descricao_servico | Resumo do problema/serviço. |
+| tipo | tipo_manutencao | Campo não existia no processo anterior → incluído para aderir ao wireframe. |
+| prestador | prestador_associado | Prestador vinculado. |
+| valor | valor_total_servico | Quando não houver valor final, exibir vazio/"a definir". |
+| acoes | comandos do processo | Ex.: ver detalhes, editar, atualizar status, anexos/relatório. |
+
+**Ações (UI):**
+- **Nova manutenção** → abre o fluxo “Criar manutenção”.
+- **Ações por linha** (sugestão para aderência ao wireframe):
+  - Ver/Editar
+  - Atualizar status
+  - Ver anexos/comprovantes
+  - Exportar PDF (quando finalizada)
+
+---
+
+### 2) Criar manutenção (iniciado por “Nova manutenção”)
+
+**Tela/Modal:** disparado a partir da Tela de Manutenções.
 
 | **Campo** | **Tipo** | **Restrições** | **Valor default** |
 | --- | --- | --- | --- |
-| id\_manutencao | Número | Gerado automaticamente, apenas leitura | |
-| prestador\_associado | Seleção única | Obrigatório (Lista de prestadores ativos) | |
-| descricao\_servico | Área de texto | Obrigatório, detalhamento do problema | |
-| data\_agendamento | Data e Hora | Obrigatório, não pode ser no passado | |
-| nivel\_prioridade | Seleção única | Obrigatório (Baixa, Média, Alta, Urgente) | Média |
+| id_manutencao | Número | Gerado automaticamente, apenas leitura | |
+| tipo_manutencao | Seleção única | **Obrigatório** (ex.: Elétrica, Hidráulica, Estrutural, Limpeza, Outros) | |
+| prestador_associado | Seleção única | Obrigatório (Lista de prestadores ativos) | |
+| descricao_servico | Área de texto | Obrigatório, detalhamento do problema | |
+| data_agendamento | Data e Hora | Obrigatório, não pode ser no passado | |
+| nivel_prioridade | Seleção única | Obrigatório (Baixa, Média, Alta, Urgente) | Média |
 
 | **Comandos** | **Destino** | **Tipo** |
 | --- | --- | --- |
-| Criar e Notificar | Atividade "Atualizar status do serviço" / "Executar serviço" | default |
-| Cancelar | Fim do Processo | cancel |
+| Criar | Retorna para “Tela de manutenções” com item criado | default |
+| Criar e Notificar | Inicia acompanhamento (status “Em andamento”) e notifica envolvidos | default |
+| Cancelar | Retorna para “Tela de manutenções��� sem salvar | cancel |
 
-**Executar serviço**
+**Notificações (conforme UI):**
+- Inquilinos recebem e-mail quando uma manutenção é cadastrada (mencionado no wireframe).
+
+---
+
+### 3) Atualizar status do serviço (ação na listagem)
+
+**Tela/Modal:** acionado a partir de **Ações** da manutenção na Tela de Manutenções.
 
 | **Campo** | **Tipo** | **Restrições** | **Valor default** |
 | --- | --- | --- | --- |
-| info\_manutencao | Área de texto | Apenas leitura (Detalhes definidos pelo gestor) | |
-| fotos\_antes\_depois | Imagem | Opcional, máximo de 5 imagens (JPG/PNG) | |
-| observacoes\_tecnicas | Área de texto | Opcional, relato do prestador no local | |
+| status_atual | Seleção única | Obrigatório (Em andamento, Aguarda peça, Finalizado) | Em andamento |
+| notas_acompanhamento | Área de texto | Opcional, histórico do acompanhamento | |
 
 | **Comandos** | **Destino** | **Tipo** |
 | --- | --- | --- |
-| Prosseguir | Atividade "Assinar/Fornecer comprovante" | default |
+| Atualizar | Mantém na Tela de Manutenções e atualiza a linha/registro | default |
+| Marcar como Finalizado | Habilita registro de comprovantes/valores e permite exportação | default |
 
-**Atualizar status do serviço**
+---
+
+### 4) Registrar comprovantes e valores (ação na listagem)
+
+**Tela/Modal:** acionado a partir de **Ações** após execução/finalização.
+
+> Ajuste de escopo para aderência ao wireframe: como não há tela do Prestador, o upload/registro pode ser feito pelo Gestor (ou por integração futura). O processo mantém a possibilidade de anexos (fiscais/recibos) para consolidar o valor exibido na tabela.
 
 | **Campo** | **Tipo** | **Restrições** | **Valor default** |
 | --- | --- | --- | --- |
-| status\_atual | Seleção única | Obrigatório (Em andamento, Aguarda peça, Finalizado) | Em andamento |
-| notas\_acompanhamento | Área de texto | Opcional, histórico do acompanhamento | |
+| documento_fiscal | Arquivo | Obrigatório, formatos: PDF, JPG, PNG | |
+| comprovativo_pagamento | Arquivo | Obrigatório, recibo ou transferência (PDF) | |
+| valor_total_servico | Número | Obrigatório, validação do custo final | |
+| observacoes_tecnicas | Área de texto | Opcional | |
 
 | **Comandos** | **Destino** | **Tipo** |
 | --- | --- | --- |
-| Atualizar | Gateway "Serviço finalizado?" | default |
-| Voltar | Atividade "Criar manutenção e associar prestador" | |
+| Salvar | Retorna para a Tela de Manutenções atualizando a coluna “valor” | default |
 
-**Assinar/Fornecer comprovante**
+---
+
+### 5) Consultar histórico / Exportar PDF (Síndico e Gestor)
+
+**Tela:** no wireframe, o Síndico possui dashboard de leitura; a consulta de histórico pode ser acessada via listagem/relatórios.
 
 | **Campo** | **Tipo** | **Restrições** | **Valor default** |
 | --- | --- | --- | --- |
-| assinatura\_digital | Imagem | Obrigatório (Recolha de assinatura no ecrã) | |
-| documento\_fiscal | Arquivo | Obrigatório, formatos: PDF, JPG, PNG | |
-| valor\_pecas\_extra | Número | Opcional, formato monetário | 0.00 |
+| detalhes_conclusao | Área de texto | Apenas leitura (Resumo da operação) | |
+| tabela_custos | Tabela | Apenas leitura (peças e mão de obra) | |
+| data_fecho | Data e Hora | Apenas leitura | Data/Hora atual |
 
 | **Comandos** | **Destino** | **Tipo** |
 | --- | --- | --- |
-| Enviar Comprovativo | Atividade "Registrar comprovante" (Gestor) | default |
-
-**Registrar comprovante**
-
-| **Campo** | **Tipo** | **Restrições** | **Valor default** |
-| --- | --- | --- | --- |
-| ficheiros\_recebidos | Link | Apenas leitura (Acesso aos anexos do prestador) | |
-| valor\_total\_servico | Número | Obrigatório, validação do custo final | |
-| comprovativo\_pagamento| Arquivo | Obrigatório, recibo ou transferência (PDF) | |
-
-| **Comandos** | **Destino** | **Tipo** |
-| --- | --- | --- |
-| Validar e Registar | Atividade "Consultar histórico" (Síndico) | default |
-| Solicitar Correção | Atividade "Assinar/Fornecer comprovante" | |
-
-**Consultar histórico**
-
-| **Campo** | **Tipo** | **Restrições** | **Valor default** |
-| --- | --- | --- | --- |
-| detalhes\_conclusao | Área de texto | Apenas leitura (Resumo de toda a operação) | |
-| tabela\_custos | Tabela | Apenas leitura (Matriz com peças e mão de obra) | |
-| data\_fecho | Data e Hora | Apenas leitura | Data/Hora atual |
-
-| **Comandos** | **Destino** | **Tipo** |
-| --- | --- | --- |
-| Arquivar e Concluir | Fim do Processo | default |
-| Exportar PDF | Própria atividade (Download do relatório) | |
+| Exportar PDF | Download do relatório | default |
+| Arquivar e Concluir | Final do processo | default |
