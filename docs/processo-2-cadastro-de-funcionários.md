@@ -65,4 +65,4 @@ Assim, este processo foi ajustado para refletir o que a UI propõe: **CRUD simpl
 | Confirmar remoção | Retorna para listagem sem o funcionário | default |
 | Cancelar | Retorna para listagem sem alterações | cancel |
 
-![Tela de funcionários](images/tela_funcionarios.jpeg "Tela de funcionários")
+![Tela de funcionários](ui/images/tela_funcionarios.jpeg "Tela de funcionários")
