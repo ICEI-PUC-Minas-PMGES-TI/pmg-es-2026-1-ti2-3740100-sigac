@@ -1,8 +1,7 @@
 ### 3.3.5 Processo 5 – Avisos
 
 **Nome do Processo:** Gestão de Avisos e Comunicações
-![Exemplo de um Modelo BPMN do PROCESSO 5](images/Sigac%20BPMN%20Avisos.jpg "Modelo BPMN do Processo 5.")
-
+![Gestão de Avisos e Comunicações](images/avisos.png)
 **Oportunidades de melhoria:**
 
   * **Templates pré-definidos:** Criar uma biblioteca de modelos de mensagens prontos na etapa "Redigir aviso" (ex: falta de água, manutenção de elevador, dedetização), agilizando o trabalho do [...]
