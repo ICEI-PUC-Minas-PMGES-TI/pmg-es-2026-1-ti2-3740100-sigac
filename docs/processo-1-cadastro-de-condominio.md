@@ -2,7 +2,9 @@
 
 **Nome do Processo:** Cadastro de Condomínios
 
-![Exemplo de um Modelo BPMN do PROCESSO 1](images/Processo%20de%20cadastro%20de%20condomínios.png "Modelo BPMN do Processo 1.")
+<img width="1299" height="762" alt="image" src="https://github.com/user-attachments/assets/ff44f002-4d25-4482-b66d-5d71b953cf04" />
+
+
 
 
 
