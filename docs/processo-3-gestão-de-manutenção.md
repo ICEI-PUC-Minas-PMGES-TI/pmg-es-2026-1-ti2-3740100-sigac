@@ -2,7 +2,7 @@
 
 **Nome do Processo:** Gestão de Manutenção
 
-![Exemplo de um Modelo BPMN do PROCESSO 3](images/Sigac%20BPMN%20G%26M.jpg "Modelo BPMN do Processo 3.")
+![Exemplo de um Modelo BPMN do PROCESSO 3].(images/manutenção.png)
 
 **Oportunidades de melhoria:**
 
