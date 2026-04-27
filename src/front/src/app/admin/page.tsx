@@ -25,6 +25,8 @@ export default function AdminPage() {
   const [editForm, setEditForm] = useState({ nome: '', email: '', novaSenha: '' });
   const [deletingUser, setDeletingUser] = useState<{ tipo: 'GESTOR' | 'SINDICO'; user: UserDTO } | null>(null);
 
+  const normalizeCnpj = (raw: string) => raw.trim().replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
+
   const loadCondominios = () => api<CondominioDTO[]>('/condominios').then(setCondominios);
 
   useEffect(() => {
@@ -51,9 +53,10 @@ export default function AdminPage() {
     setError('');
     setSubmitting(true);
     try {
+      const cnpj = formCond.cnpj?.trim() ? normalizeCnpj(formCond.cnpj) : '';
       await api('/condominios', {
         method: 'POST',
-        body: JSON.stringify(formCond),
+        body: JSON.stringify({ ...formCond, cnpj }),
       });
       setFormCond({ nome: '', endereco: '', cnpj: '' });
       setShowFormCond(false);
@@ -189,10 +192,10 @@ export default function AdminPage() {
       <AnimatePresence mode="wait">
         {error && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="toast-error"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="toast-error fixed top-4 left-1/2 -translate-x-1/2 z-[60] w-[min(720px,calc(100%-2rem))]"
           >
             {error}
           </motion.div>
@@ -208,7 +211,14 @@ export default function AdminPage() {
         <form onSubmit={handleCreateCondominio} className="space-y-3">
           <input className="input" placeholder="Nome" value={formCond.nome} onChange={(e) => setFormCond((f) => ({ ...f, nome: e.target.value }))} required />
           <input className="input" placeholder="Endereço" value={formCond.endereco} onChange={(e) => setFormCond((f) => ({ ...f, endereco: e.target.value }))} />
-          <input className="input" placeholder="CNPJ" value={formCond.cnpj} onChange={(e) => setFormCond((f) => ({ ...f, cnpj: e.target.value }))} />
+          <input
+            className="input"
+            placeholder="CNPJ (14 caracteres, alfanumérico)"
+            value={formCond.cnpj}
+            onChange={(e) => setFormCond((f) => ({ ...f, cnpj: e.target.value.toUpperCase() }))}
+            inputMode="text"
+            autoCapitalize="characters"
+          />
           <div className="flex gap-2 pt-2">
             <button type="submit" className="btn-primary" disabled={submitting}>
               {submitting ? 'Salvando...' : 'Criar'}

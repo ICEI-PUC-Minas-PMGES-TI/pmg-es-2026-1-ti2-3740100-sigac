@@ -64,7 +64,7 @@ public class CondominioService {
         Condominio c = new Condominio();
         c.setNome(dto.getNome());
         c.setEndereco(dto.getEndereco());
-        c.setCnpj(dto.getCnpj());
+        c.setCnpj(normalizeCnpjAlpha(dto.getCnpj()));
         c = condominioRepository.save(c);
         return toDTO(c);
     }
@@ -82,7 +82,7 @@ public class CondominioService {
         Condominio c = condominioRepository.findById(id).orElseThrow(() -> new NotFoundException("Condomínio não encontrado"));
         c.setNome(dto.getNome());
         c.setEndereco(dto.getEndereco());
-        c.setCnpj(dto.getCnpj());
+        c.setCnpj(normalizeCnpjAlpha(dto.getCnpj()));
         return toDTO(condominioRepository.save(c));
     }
 
@@ -244,5 +244,28 @@ public class CondominioService {
         dto.setEmail(u.getEmail());
         dto.setRole(u.getRole());
         return dto;
+    }
+
+    /**
+     * Normaliza CNPJ para a nova norma alfanumérica:
+     * - remove pontuação/espaços
+     * - converte para maiúsculas
+     * - exige exatamente 14 caracteres [A-Z0-9] quando informado
+     *
+     * Mantém compatibilidade com CNPJ numérico legado (vira 14 dígitos após normalizar).
+     */
+    static String normalizeCnpjAlpha(String raw) {
+        if (raw == null) return null;
+        String trimmed = raw.trim();
+        if (trimmed.isEmpty()) return null;
+
+        String normalized = trimmed.replaceAll("[^0-9A-Za-z]", "").toUpperCase();
+        if (normalized.length() != 14) {
+            throw new IllegalArgumentException("CNPJ inválido. Informe 14 caracteres (alfanumérico), com ou sem pontuação.");
+        }
+        if (!normalized.matches("^[A-Z0-9]{14}$")) {
+            throw new IllegalArgumentException("CNPJ inválido. Use apenas letras A-Z e números 0-9.");
+        }
+        return normalized;
     }
 }

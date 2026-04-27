@@ -140,7 +140,7 @@ export function PerfilContent({ backHref }: { backHref: string }) {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="toast-error flex items-center gap-2"
+                className="toast-error fixed top-4 left-1/2 -translate-x-1/2 z-[60] w-[min(720px,calc(100%-2rem))] flex items-center gap-2"
               >
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 {erro}
