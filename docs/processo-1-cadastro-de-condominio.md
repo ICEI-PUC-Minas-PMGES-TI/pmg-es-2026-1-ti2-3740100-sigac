@@ -2,7 +2,7 @@
 
 **Nome do Processo:** Cadastro de Condomínios
 
-![Cadastro de Condomínios](images/Condominio.png)
+![Cadastro de Condomínios](images/Processo 1 - cadastrar condominio.png)
 
 
 
