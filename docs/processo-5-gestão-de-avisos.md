@@ -1,7 +1,7 @@
 ### 3.3.5 Processo 5 – Avisos
 
 **Nome do Processo:** Gestão de Avisos e Comunicações
-![Gestão de Avisos e Comunicações](images/avisos.png)
+![Gestão de Avisos e Comunicações](images/gestaodeavisos.png)
 **Oportunidades de melhoria:**
 
   * **Templates pré-definidos:** Criar uma biblioteca de modelos de mensagens prontos na etapa "Redigir aviso" (ex: falta de água, manutenção de elevador, dedetização), agilizando o trabalho do [...]
