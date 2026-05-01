@@ -2,7 +2,7 @@
 
 **Nome do Processo:** Gestão Financeira (Receitas e Despesas)
 
-![Gestão Financeira](images/gestao_financeira.png)
+![Gestão Financeira](images/gestaofinanceira.png)
 
 **Telas relacionadas (UI):**
 
