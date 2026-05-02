@@ -8,8 +8,10 @@ Os fluxos estao organizados na seguinte ordem:
 1. Login
 2. Admin
 3. Gestor
-4. Sindico
-5. Gestao Financeira
+4. Cadastro de Funcionarios
+5. Cadastro de Manutencao
+6. Sindico
+7. Gestao Financeira
 
 ## 1. Fluxo de Login
 
