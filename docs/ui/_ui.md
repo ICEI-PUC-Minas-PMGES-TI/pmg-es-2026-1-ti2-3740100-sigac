@@ -80,7 +80,39 @@ Essa tela reforca a necessidade de confirmacao antes da exclusao de um vinculo a
 
 ![Remover gestor](./images/remover_gestor.jpeg)
 
-### 2.6 Perfil do administrador
+### 2.6 Cadastro de novo sindico
+
+Com um condominio selecionado, o administrador pode cadastrar um novo sindico. A tela aparece em modal e solicita:
+
+- nome
+- e-mail
+- senha
+
+Esse fluxo e usado para conceder acesso de supervisao ao condominio.
+
+![Novo sindico](./images/novo_sindico.jpeg)
+
+### 2.7 Edicao de sindico
+
+Esta tela permite atualizar os dados de um sindico ja cadastrado. O modal apresenta os campos preenchidos previamente e possibilita:
+
+- alterar nome
+- alterar e-mail
+- definir nova senha opcionalmente
+
+O objetivo e manter os dados de acesso atualizados sem precisar recriar o usuario.
+
+![Editar sindico](./images/editar_sindico.jpeg)
+
+### 2.8 Remocao de sindico
+
+Ao remover um sindico, o sistema exibe uma confirmacao de seguranca. A mensagem deixa claro que a acao nao pode ser desfeita.
+
+Essa tela reforca a necessidade de confirmacao antes da exclusao de um vinculo administrativo.
+
+![Remover sindico](./images/remover_sindico.jpeg)
+
+### 2.9 Perfil do administrador
 
 Esta tela apresenta os dados da conta logada e permite a troca de senha. O usuario visualiza:
 
@@ -206,7 +238,7 @@ O diferencial aqui e a identificacao do usuario como sindico na barra superior e
 
 ## 5. Gestao Financeira
 
-Esta secao detalha as telas relacionadas a gestao financeira do condominio, alinhadas ao **Processo 4 - Gestao Financeira (Receitas e Despesas)** (ver documento do processo em `docs/processo-4-gestao-financeira.md`).
+Esta secao detalha as telas relacionadas a gestao financeira do condominio, alinhadas ao **Processo 4 - Gestao Financeira (Receitas e Despesas)** (ver documento do processo em `docs/processo-4-gestao-[...]
 
 ### 5.1 Tela de gestao financeira (visao geral / dashboard)
 
@@ -239,5 +271,3 @@ Elementos esperados na tela:
 - acao de exportar/emitir relatorio (PDF, Excel, CSV)
 
 ![Gestao financeira - tela 2](./images/gf2.jpeg)
-
-
