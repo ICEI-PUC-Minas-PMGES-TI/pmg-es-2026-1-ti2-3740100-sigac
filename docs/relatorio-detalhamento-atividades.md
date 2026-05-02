@@ -2,9 +2,9 @@
 
 ## Introdução
 
-Este relatório consolida todas as tarefas de usuário dos 5 processos BPMN do **Sistema Integrado de Gestão e Administração Condominial (SIGAC)**. Para cada processo, são apresentados: a identificação das tarefas e seus atores responsáveis, os campos de cada tarefa de usuário (com tipo, restrições e valor default) e os comandos disponíveis (com destino e tipo). Ao final, é apresentado o modelo de dados relacional que suporta todos os processos.
+Este relatório consolida todas as tarefas de usuário dos 5 processos BPMN do **Sistema Integrado de Gestão e Administração Condominial (SIGAC)**. Para cada processo, são apresentados: a identificação das tarefas, os atores responsáveis e o detalhamento dos campos e comandos.
 
-**Total de processos:** 5
+**Total de processos:** 5  
 **Total de tarefas de usuário:** 22
 
 ---
@@ -436,35 +436,102 @@ Este relatório consolida todas as tarefas de usuário dos 5 processos BPMN do *
 
 ## Modelo de Dados Relacional
 
+> **Ajuste solicitado (atores do BPMN no modelo relacional):**
+> - Foi introduzida a entidade base **`usuario`** e uma estratégia de **herança (table-per-subclass)** para **`admin`**, **`gestor`** e **`sindico`**.
+> - Foi adicionada a entidade **`inquilino`** com apenas **nome** e **email**, conforme solicitado.
+> - As tabelas **`condominio`**, **`validacao_cadastro`**, **`prestador`**, **`manutencao`**, **`receita`**, **`despesa`**, **`relatorio_financeiro`** e **`aviso`** foram ajustadas para referenciar usuários quando aplicável (auditoria/autor).
+>
+> Observação: optou-se por **herança table-per-subclass** (tabela `usuario` + tabelas filhas com a mesma PK), pois é uma forma comum em SQL para representar herança.
+
 ```sql
 -- =============================================
 -- MODELO DE DADOS - SIGAC
+-- (com Usuários + Herança para Admin/Gestor/Síndico)
 -- =============================================
 
+-- -----------------------------
+-- USUÁRIOS (entidade base)
+-- -----------------------------
+CREATE TABLE usuario (
+    id_usuario      INT PRIMARY KEY AUTO_INCREMENT,
+    nome            VARCHAR(100) NOT NULL,
+    email           VARCHAR(150) NOT NULL UNIQUE,
+    senha_hash      VARCHAR(255) NOT NULL,
+    ativo           BOOLEAN DEFAULT TRUE,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Herança (table-per-subclass)
+CREATE TABLE admin (
+    id_usuario INT PRIMARY KEY,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+
+CREATE TABLE gestor (
+    id_usuario INT PRIMARY KEY,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+
+CREATE TABLE sindico (
+    id_usuario INT PRIMARY KEY,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+
+-- -----------------------------
+-- INQUILINOS (simples: nome + email)
+-- -----------------------------
+CREATE TABLE inquilino (
+    id_inquilino INT PRIMARY KEY AUTO_INCREMENT,
+    nome         VARCHAR(100) NOT NULL,
+    email        VARCHAR(150) NOT NULL,
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (email)
+);
+
+-- -----------------------------
+-- CONDOMÍNIO
+-- -----------------------------
 CREATE TABLE condominio (
     id_condominio       INT PRIMARY KEY AUTO_INCREMENT,
     nome_condominio     VARCHAR(100) NOT NULL,
     cnpj                VARCHAR(18),
     qtd_unidades        INT NOT NULL DEFAULT 1 CHECK (qtd_unidades > 0),
     tipo_condominio     ENUM('Residencial', 'Comercial', 'Misto') NOT NULL DEFAULT 'Residencial',
-    nome_sindico        VARCHAR(100) NOT NULL,
-    email_contato       VARCHAR(150) NOT NULL,
+
+    -- Em vez de texto solto, relaciona com o usuário síndico
+    id_sindico          INT NOT NULL,
+
     plano_contratado    ENUM('Basico', 'Intermediario', 'Pro') DEFAULT 'Basico',
     data_hora_ativacao  DATETIME,
     status              ENUM('Pendente', 'Aprovado', 'Rejeitado', 'Ativo') DEFAULT 'Pendente',
-    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_sindico) REFERENCES sindico(id_usuario)
 );
 
+-- -----------------------------
+-- VALIDAÇÃO DO CADASTRO
+-- -----------------------------
 CREATE TABLE validacao_cadastro (
-    id_validacao        INT PRIMARY KEY AUTO_INCREMENT,
-    id_condominio       INT NOT NULL,
-    parecer_analise     TEXT,
-    status_aprovacao    ENUM('Aprovado', 'Rejeitado') NOT NULL,
+    id_validacao         INT PRIMARY KEY AUTO_INCREMENT,
+    id_condominio        INT NOT NULL,
+
+    parecer_analise      TEXT,
+    status_aprovacao     ENUM('Aprovado', 'Rejeitado') NOT NULL,
     orientacoes_correcao TEXT,
-    data_validacao      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_condominio) REFERENCES condominio(id_condominio)
+
+    -- Quem validou (Dep. Cadastro / Admin)
+    id_admin_validador   INT NOT NULL,
+
+    data_validacao       DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_condominio) REFERENCES condominio(id_condominio),
+    FOREIGN KEY (id_admin_validador) REFERENCES admin(id_usuario)
 );
 
+-- -----------------------------
+-- PRESTADORES
+-- -----------------------------
 CREATE TABLE prestador (
     id_prestador        INT PRIMARY KEY AUTO_INCREMENT,
     nome_completo       VARCHAR(100) NOT NULL,
@@ -477,7 +544,13 @@ CREATE TABLE prestador (
     avaliacao_servico   INT DEFAULT 5 CHECK (avaliacao_servico BETWEEN 1 AND 5),
     foto_prestador      VARCHAR(500),
     observacoes_gestor  TEXT,
-    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP
+
+    -- Quem cadastrou/gerencia (Gestor)
+    id_gestor_responsavel INT NOT NULL,
+
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_gestor_responsavel) REFERENCES gestor(id_usuario)
 );
 
 CREATE TABLE historico_servico_prestador (
@@ -489,31 +562,42 @@ CREATE TABLE historico_servico_prestador (
     FOREIGN KEY (id_prestador) REFERENCES prestador(id_prestador)
 );
 
+-- -----------------------------
+-- MANUTENÇÕES
+-- -----------------------------
 CREATE TABLE manutencao (
     id_manutencao       INT PRIMARY KEY AUTO_INCREMENT,
     id_condominio       INT NOT NULL,
     id_prestador        INT NOT NULL,
+
     descricao_servico   TEXT NOT NULL,
     data_agendamento    DATETIME NOT NULL,
     nivel_prioridade    ENUM('Baixa', 'Media', 'Alta', 'Urgente') DEFAULT 'Media',
     status_atual        ENUM('Em andamento', 'Aguarda peca', 'Finalizado') DEFAULT 'Em andamento',
+
     notas_acompanhamento TEXT,
     observacoes_tecnicas TEXT,
     valor_total_servico  DECIMAL(10,2),
     valor_pecas_extra    DECIMAL(10,2) DEFAULT 0.00,
-    data_fecho          DATETIME,
+    data_fecho           DATETIME,
+
+    -- Quem abriu/acompanha (Gestor)
+    id_gestor_responsavel INT NOT NULL,
+
     created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+
     FOREIGN KEY (id_condominio) REFERENCES condominio(id_condominio),
-    FOREIGN KEY (id_prestador) REFERENCES prestador(id_prestador)
+    FOREIGN KEY (id_prestador) REFERENCES prestador(id_prestador),
+    FOREIGN KEY (id_gestor_responsavel) REFERENCES gestor(id_usuario)
 );
 
 CREATE TABLE comprovante_manutencao (
-    id_comprovante      INT PRIMARY KEY AUTO_INCREMENT,
-    id_manutencao       INT NOT NULL,
-    assinatura_digital  VARCHAR(500) NOT NULL,
-    documento_fiscal    VARCHAR(500) NOT NULL,
+    id_comprovante         INT PRIMARY KEY AUTO_INCREMENT,
+    id_manutencao          INT NOT NULL,
+    assinatura_digital     VARCHAR(500) NOT NULL,
+    documento_fiscal       VARCHAR(500) NOT NULL,
     comprovativo_pagamento VARCHAR(500),
-    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at             DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_manutencao) REFERENCES manutencao(id_manutencao)
 );
 
@@ -525,6 +609,9 @@ CREATE TABLE foto_manutencao (
     FOREIGN KEY (id_manutencao) REFERENCES manutencao(id_manutencao)
 );
 
+-- -----------------------------
+-- FINANCEIRO
+-- -----------------------------
 CREATE TABLE receita (
     id_receita          INT PRIMARY KEY AUTO_INCREMENT,
     id_condominio       INT NOT NULL,
@@ -533,8 +620,14 @@ CREATE TABLE receita (
     data_recebimento    DATE NOT NULL,
     categoria_receita   ENUM('Taxa Condominial', 'Multa', 'Aluguel de Salao') DEFAULT 'Taxa Condominial',
     unidade_pagadora    VARCHAR(50) NOT NULL,
+
+    -- Quem registrou (Gestor)
+    id_gestor_responsavel INT NOT NULL,
+
     created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_condominio) REFERENCES condominio(id_condominio)
+
+    FOREIGN KEY (id_condominio) REFERENCES condominio(id_condominio),
+    FOREIGN KEY (id_gestor_responsavel) REFERENCES gestor(id_usuario)
 );
 
 CREATE TABLE despesa (
@@ -548,8 +641,14 @@ CREATE TABLE despesa (
     nota_fiscal         VARCHAR(500),
     comprovante_pagamento VARCHAR(500),
     observacoes_lancamento TEXT,
+
+    -- Quem registrou (Gestor)
+    id_gestor_responsavel INT NOT NULL,
+
     created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_condominio) REFERENCES condominio(id_condominio)
+
+    FOREIGN KEY (id_condominio) REFERENCES condominio(id_condominio),
+    FOREIGN KEY (id_gestor_responsavel) REFERENCES gestor(id_usuario)
 );
 
 CREATE TABLE relatorio_financeiro (
@@ -560,36 +659,57 @@ CREATE TABLE relatorio_financeiro (
     formato_exportacao  VARCHAR(50) NOT NULL DEFAULT 'PDF',
     caminho_arquivo     VARCHAR(500),
     parecer_sindico     TEXT,
+
+    -- Quem gerou (Gestor)
+    id_gestor_gerador   INT NOT NULL,
+
     created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_condominio) REFERENCES condominio(id_condominio)
+
+    FOREIGN KEY (id_condominio) REFERENCES condominio(id_condominio),
+    FOREIGN KEY (id_gestor_gerador) REFERENCES gestor(id_usuario)
 );
 
+-- -----------------------------
+-- AVISOS E NOTIFICAÇÕES
+-- -----------------------------
 CREATE TABLE aviso (
     id_aviso            INT PRIMARY KEY AUTO_INCREMENT,
     id_condominio       INT NOT NULL,
+
     tipo_manutencao     ENUM('Preventiva', 'Corretiva', 'Limpeza') DEFAULT 'Preventiva',
     area_afetada        VARCHAR(200) NOT NULL,
     data_inicio         DATETIME NOT NULL,
     data_fim_prevista   DATETIME NOT NULL,
     responsavel_tecnico VARCHAR(100),
+
     assunto_aviso       VARCHAR(100) NOT NULL DEFAULT 'Aviso de Manutencao',
     corpo_mensagem      TEXT NOT NULL,
     arquivo_anexo       VARCHAR(500),
     publico_alvo        ENUM('Todos', 'Bloco Especifico', 'Apenas Sindico') DEFAULT 'Todos',
     agendar_disparo     DATETIME,
     solicitar_leitura   BOOLEAN DEFAULT FALSE,
+
+    -- Quem redigiu/publicou (Gestor)
+    id_gestor_autor     INT NOT NULL,
+
     created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_condominio) REFERENCES condominio(id_condominio)
+
+    FOREIGN KEY (id_condominio) REFERENCES condominio(id_condominio),
+    FOREIGN KEY (id_gestor_autor) REFERENCES gestor(id_usuario)
 );
 
 CREATE TABLE notificacao_aviso (
     id_notificacao      INT PRIMARY KEY AUTO_INCREMENT,
     id_aviso            INT NOT NULL,
-    email_destinatario  VARCHAR(150) NOT NULL,
-    nome_destinatario   VARCHAR(100),
+
+    -- Destinatário: agora referencia o inquilino (nome+email)
+    id_inquilino        INT NOT NULL,
+
     confirmou_ciencia   BOOLEAN DEFAULT FALSE,
     data_confirmacao    DATETIME,
-    FOREIGN KEY (id_aviso) REFERENCES aviso(id_aviso)
+
+    FOREIGN KEY (id_aviso) REFERENCES aviso(id_aviso),
+    FOREIGN KEY (id_inquilino) REFERENCES inquilino(id_inquilino)
 );
 ```
 
