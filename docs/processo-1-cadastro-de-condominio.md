@@ -1,4 +1,4 @@
-### 3.3.1 Processo 1 – Cadastro de condomínios
+### 3.3.1 Processo 1 – Cadastro de Condomínios
 
 **Nome do Processo:** Cadastro de Condomínios
 
