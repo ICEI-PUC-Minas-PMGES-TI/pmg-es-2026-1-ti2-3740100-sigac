@@ -2,7 +2,7 @@
 
 **Nome do Processo (UI):** Gestão de Avisos e Comunicações
 
-![Gestão de Avisos e Comunicações](images/gestaodeavisos.png)
+![Gestão de Avisos e Comunicações](images/gestaoAviso.png)
 
 **Alinhamento com as telas do UI (Wireframe)**
 
