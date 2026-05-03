@@ -149,7 +149,6 @@
 
 ![Tela de gestão gestor&sindico](ui/images/login.jpeg "Tela de gestao gestoresindico")
 ![Tela de gestão gestor&sindico](ui/images/pagina_inicial_admin.jpeg "Tela de gestao gestoresindico")
-![Tela de gestão gestor&sindico](ui/images/novoGestor.png "Tela de gestao gestoresindico")
-![Tela de gestão gestor&sindico](ui/images/login.jpeg "Tela de gestao gestoresindico")
-![Tela de gestão gestor&sindico](ui/images/removerGestor.png "Tela de gestao gestoresindico")
+![Tela de gestão gestor&sindico](ui/images/novo_gestor.jpeg "Tela de gestao gestoresindico")
+![Tela de gestão gestor&sindico](ui/images/remover_gestor.jpeg "Tela de gestao gestoresindico")
 ![Tela de gestão gestor&sindico](ui/images/novoSindico.png "Tela de gestao gestoresindico")
