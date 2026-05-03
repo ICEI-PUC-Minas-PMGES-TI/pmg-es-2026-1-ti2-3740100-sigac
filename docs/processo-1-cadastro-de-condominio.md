@@ -38,3 +38,4 @@
 - Condomínio disponível para ações subsequentes do Admin, como **vincular gestores e síndicos** (processos relacionados ao fluxo 2.3+ do UI).
   
 ![Tela - Criação de condomínio](ui/images/criar_condominio.jpeg "Criação de condomínio")
+![Tela - Criação de condomínio](ui/images/pagina_inicial_admin.jpeg "Criação de condomínio")
