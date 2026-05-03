@@ -147,3 +147,9 @@
 - Gestor e/ou Síndico cadastrados e vinculados ao condomínio selecionado.
 - Alterações (edição/remoção) refletidas no painel da **UI 2.1**.
 
+![Tela de gestão gestor&sindico](ui/images/login.jpeg "Tela de gestao gestoresindico")
+![Tela de gestão gestor&sindico](ui/images/pagina_inicial_admin.jpeg "Tela de gestao gestoresindico")
+![Tela de gestão gestor&sindico](ui/images/novoGestor.png "Tela de gestao gestoresindico")
+![Tela de gestão gestor&sindico](ui/images/login.jpeg "Tela de gestao gestoresindico")
+![Tela de gestão gestor&sindico](ui/images/removerGestor.png "Tela de gestao gestoresindico")
+![Tela de gestão gestor&sindico](ui/images/novoSindico.png "Tela de gestao gestoresindico")
