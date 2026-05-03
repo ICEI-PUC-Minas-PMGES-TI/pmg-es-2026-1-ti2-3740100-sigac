@@ -93,9 +93,14 @@ De acordo com o documento **`docs/ui/_ui.md`**, a gestão de avisos ocorre na **
 | Confirmar remoção | Retorna para "Listar avisos" sem o aviso removido | default |
 | Cancelar | Retorna para "Listar avisos" sem alterações | cancel |
 
+
 ---
 
 **Resultado esperado**
 
 - Gestor consegue **criar, listar, editar e remover avisos** na **UI 3.6**.
 - Lista sempre apresenta **título**, **descrição** e **data de publicação**.
+
+![Tela de gestão avisos](ui/images/avisos.png "Tela de gestao avisos")
+![Tela de gestão avisos](ui/images/novoInquilino.png "Tela de gestao avisos")
+![Tela de gestão avisos](ui/images/listaInquilinos.png "Tela de gestao avisos")
