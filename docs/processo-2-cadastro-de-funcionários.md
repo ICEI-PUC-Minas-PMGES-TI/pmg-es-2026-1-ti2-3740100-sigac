@@ -66,5 +66,6 @@ Assim, este processo foi ajustado para refletir o que a UI propõe: **CRUD simpl
 | Cancelar | Retorna para listagem sem alterações | cancel |
 
 ![Tela de funcionários](ui/images/tela_funcionarios.jpeg "Tela de funcionários")
+![Tela de funcionários](ui/images/novoFuncionario.png "Tela de funcionários")
 ![Tela de funcionários](ui/images/listarFuncionario.png "Tela de funcionários")
 ![Tela de funcionários](ui/images/excluirFuncionario.png "Tela de funcionários")
