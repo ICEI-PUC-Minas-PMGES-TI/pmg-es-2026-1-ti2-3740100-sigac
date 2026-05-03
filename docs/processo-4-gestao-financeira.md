@@ -2,7 +2,7 @@
 
 **Nome do Processo:** Gestão Financeira (Receitas e Despesas)
 
-![Gestão Financeira](images/gestaofinanceira.png)
+![Gestão Financeira](images/gestaoFinanceira1.png)
 
 **Telas relacionadas (UI):**
 
@@ -86,6 +86,10 @@
 | Concluir Análise | Fim do Processo | default |
 | Imprimir Tela | Própria atividade | |
 
+![Tela de gestão financeira](ui/images/novoGasto.png "Tela de gestao financeira")
+![Tela de gestão financeira](ui/images/listarGasto.png "Tela de gestao financeira")
+![Tela de gestão financeira](ui/images/editarGasto.png "Tela de gestao financeira")
+![Tela de gestão financeira](ui/images/excluirGasto.png "Tela de gestao financeira")
 ![Tela de gestão financeira](ui/images/gf1.jpeg "Tela de gestao financeira")
 ![Tela de gestão financeira](ui/images/gf2.jpeg "Tela de gestao financeira")
 
