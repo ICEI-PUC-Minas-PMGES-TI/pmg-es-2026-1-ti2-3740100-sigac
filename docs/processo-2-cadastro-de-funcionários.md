@@ -1,6 +1,6 @@
 ### 3.3.2 Processo 2 – Cadastro de funcionários
 
-![Cadastro de funcionários](images/cadastrofuncionario.png)
+![Cadastro de funcionários](images/cadastroDeFuncionario.png)
 
 
 **Nome do Processo (UI):** Cadastro de Funcionários
@@ -66,3 +66,5 @@ Assim, este processo foi ajustado para refletir o que a UI propõe: **CRUD simpl
 | Cancelar | Retorna para listagem sem alterações | cancel |
 
 ![Tela de funcionários](ui/images/tela_funcionarios.jpeg "Tela de funcionários")
+![Tela de funcionários](ui/images/listarFuncionario.png "Tela de funcionários")
+![Tela de funcionários](ui/images/excluirFuncionario.png "Tela de funcionários")
