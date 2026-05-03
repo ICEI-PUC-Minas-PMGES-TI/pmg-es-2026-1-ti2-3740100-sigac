@@ -2,7 +2,7 @@
 
 **Nome do Processo:** Gestão de Manutenção
 
-![Gestão Manutenção](images/cadastrodemanutencao.png)
+![Gestão Manutenção](images/gestaoDeManutencao.png)
 
 **Oportunidades de melhoria:**
 
@@ -128,3 +128,7 @@ E possui a ação principal **"Nova manutenção"**, que inicia o cadastro.
 | Arquivar e Concluir | Final do processo | default |
 
 ![Tela de manutenções](ui/images/tela_manutencoes.jpeg "Tela de manutencoes")
+![Tela de manutenções](ui/images/novaManutencao.png "Tela de manutencoes")
+![Tela de manutenções](ui/images/listarManutencao.png "Tela de manutencoes")
+![Tela de manutenções](ui/images/editarManutencao.png "Tela de manutencoes")
+![Tela de manutenções](ui/images/excluirManutencoes.png "Tela de manutencoes")
