@@ -2,7 +2,7 @@
 
 **Nome do Processo (UI):** Cadastro de Gestor e Síndico (Admin)
 
-![Cadastro de Gestor/Síndico](images/cadastrogestorsindico.png)
+![Cadastro de Gestor/Síndico](images/cadastroGestor&Sindico.png)
 
 **Observação de alinhamento com UI:** Este processo foi ajustado para refletir exatamente o que está descrito no wireframe `docs/ui/_ui.md`, seção **2. Fluxo do Admin**, nas telas:
 
@@ -146,3 +146,4 @@
 
 - Gestor e/ou Síndico cadastrados e vinculados ao condomínio selecionado.
 - Alterações (edição/remoção) refletidas no painel da **UI 2.1**.
+
