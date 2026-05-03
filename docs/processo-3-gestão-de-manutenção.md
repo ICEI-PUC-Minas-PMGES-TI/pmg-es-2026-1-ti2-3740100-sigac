@@ -1,4 +1,4 @@
-### 3.3.3 Processo 3 – Gestão de manutenção
+### 3.3.3 Processo 3 – Gestão de Manutenção
 
 **Nome do Processo:** Gestão de Manutenção
 
@@ -131,4 +131,4 @@ E possui a ação principal **"Nova manutenção"**, que inicia o cadastro.
 ![Tela de manutenções](ui/images/novaManutencao.png "Tela de manutencoes")
 ![Tela de manutenções](ui/images/listarManutencao.png "Tela de manutencoes")
 ![Tela de manutenções](ui/images/editarManutencao.png "Tela de manutencoes")
-![Tela de manutenções](ui/images/excluirManutencoes.png "Tela de manutencoes")
+![Tela de manutenções](ui/images/excluirManutencao.png "Tela de manutencoes")
