@@ -1,4 +1,4 @@
-### 3.3.2 Processo 2 – Cadastro de funcionários
+### 3.3.2 Processo 2 – Cadastro de Funcionários
 
 ![Cadastro de funcionários](images/cadastroDeFuncionario.png)
 
