@@ -8,4 +8,6 @@ import java.util.List;
 public interface InquilinoRepository extends JpaRepository<Inquilino, Long> {
 
     List<Inquilino> findByCondominioId(Long condominioId);
+
+    List<Inquilino> findByCondominioIdAndIdIn(Long condominioId, List<Long> ids);
 }

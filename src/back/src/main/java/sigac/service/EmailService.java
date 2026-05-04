@@ -1,5 +1,6 @@
 package sigac.service;
 
+import sigac.domain.Aviso;
 import sigac.domain.Manutencao;
 import sigac.domain.TipoManutencao;
 import sigac.repository.InquilinoRepository;
@@ -37,6 +38,8 @@ public class EmailService {
         this.inquilinoRepository = inquilinoRepository;
         this.fromAddress = fromAddress;
     }
+
+    public record EmailDestinatario(String nome, String email) {}
 
     /**
      * Envia e-mail em HTML para todos os inquilinos do condomínio informando a manutenção programada.
@@ -244,6 +247,101 @@ public class EmailService {
             log.info("Notificação de alteração da manutenção {} enviada para {} inquilino(s)", manutencao.getId(), emails.size());
         } catch (MessagingException e) {
             log.error("Erro ao enviar e-mail de alteração de manutenção: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Envia aviso manual em HTML, reutilizando a base visual dos e-mails já existentes do sistema.
+     */
+    @Async
+    public void enviarAvisoGeral(Aviso aviso, String nomeCondominio, List<EmailDestinatario> destinatarios) {
+        if (destinatarios == null || destinatarios.isEmpty()) {
+            log.info("Nenhum destinatário válido para o aviso {}", aviso.getId());
+            return;
+        }
+
+        String assunto = "SIGAC - Novo aviso do condomínio " + nomeCondominio;
+        String dataFormatada = aviso.getDataReferencia().format(DATA_BR);
+        String publicoLinha = aviso.getDestinatarios().isEmpty()
+                ? "Todos os inquilinos"
+                : "Aviso direcionado a inquilinos específicos";
+
+        String html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width,initial-scale=1">
+              <title>Novo aviso</title>
+            </head>
+            <body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f1f5f9;">
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px;">
+              <tr><td align="center">
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(15,23,42,0.15),0 0 0 1px rgba(15,23,42,0.04);">
+              <tr>
+                <td style="background:linear-gradient(145deg,#1b3266 0%%,#2f6ce6 55%%,#0ea5e9 100%%);padding:32px 28px;text-align:center;">
+                  <p style="margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.7);">Sistema de Gestão</p>
+                  <p style="margin:0;font-size:28px;font-weight:700;letter-spacing:-0.03em;color:#ffffff;">SIGAC</p>
+                  <p style="margin:8px 0 0;font-size:13px;color:rgba(255,255,255,0.85);">Aviso para moradores</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:32px 28px 24px;">
+                  <p style="margin:0 0 6px;color:#64748b;font-size:13px;">Prezado(a) morador(a),</p>
+                  <p style="margin:0 0 20px;color:#475569;font-size:15px;line-height:1.55;">Um novo aviso foi enviado pela administração do condomínio.</p>
+                  <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;background:linear-gradient(135deg,#eff6ff 0%%,#dbeafe 100%%);border-radius:14px;border:2px solid #3b82f6;border-left-width:6px;">
+                    <tr><td style="padding:18px 22px;">
+                      <p style="margin:0 0 8px;color:#1d4ed8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Título do aviso</p>
+                      <p style="margin:0;color:#0f172a;font-size:17px;font-weight:600;line-height:1.5;">%s</p>
+                    </td></tr>
+                  </table>
+                  <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:linear-gradient(180deg,#f8fafc 0%%,#f1f5f9 100%%);border-radius:14px;border:1px solid #e2e8f0;">
+                    <tr><td style="padding:20px 22px;">
+                      <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="font-size:14px;">
+                        <tr><td style="padding:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Condomínio</td></tr>
+                        <tr><td style="padding:0 0 18px;color:#0f172a;font-size:16px;font-weight:600;">%s</td></tr>
+                        <tr><td style="padding:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Data de referência</td></tr>
+                        <tr><td style="padding:0 0 18px;"><span style="display:inline-block;background:#0f172a;color:#fff;padding:8px 14px;border-radius:10px;font-size:14px;font-weight:600;">%s</span></td></tr>
+                        <tr><td style="padding:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Abrangência</td></tr>
+                        <tr><td style="padding:0 0 4px;"><span style="display:inline-block;background:#ecfeff;color:#155e75;border:1px solid #a5f3fc;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;">%s</span></td></tr>
+                      </table>
+                    </td></tr>
+                  </table>
+                  <div style="margin-top:24px;padding:20px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+                    <p style="margin:0 0 8px;color:#0f172a;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">Mensagem</p>
+                    <p style="margin:0;color:#334155;font-size:14px;line-height:1.7;white-space:pre-line;">%s</p>
+                  </div>
+                  <p style="margin:28px 0 0;padding-top:20px;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;text-align:center;">E-mail automático | SIGAC • Não responda a esta mensagem</p>
+                </td>
+              </tr>
+            </table>
+              </td></tr>
+            </table>
+            </body>
+            </html>
+            """
+                .formatted(
+                        escapeHtml(aviso.getTitulo()),
+                        escapeHtml(nomeCondominio),
+                        dataFormatada,
+                        escapeHtml(publicoLinha),
+                        escapeHtml(aviso.getMensagem())
+                );
+
+        try {
+            for (EmailDestinatario destinatario : destinatarios) {
+                if (destinatario == null || destinatario.email() == null || destinatario.email().isBlank()) continue;
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setFrom(fromAddress);
+                helper.setTo(destinatario.email().trim());
+                helper.setSubject(assunto);
+                helper.setText(html, true);
+                mailSender.send(message);
+            }
+            log.info("Aviso {} enviado para {} destinatário(s)", aviso.getId(), destinatarios.size());
+        } catch (MessagingException e) {
+            log.error("Erro ao enviar e-mail de aviso: {}", e.getMessage());
         }
     }
 

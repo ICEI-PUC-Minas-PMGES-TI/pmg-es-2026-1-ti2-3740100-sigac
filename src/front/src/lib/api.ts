@@ -88,6 +88,28 @@ export interface InquilinoDTO {
   condominioId: number;
 }
 
+export type OrigemAviso = 'MANUTENCAO' | 'GERAL';
+export type AlcanceAviso = 'TODOS' | 'ESPECIFICOS';
+
+export interface AvisoDestinatarioDTO {
+  inquilinoId?: number;
+  nome: string;
+  email: string;
+}
+
+export interface AvisoDTO {
+  id: number;
+  titulo: string;
+  mensagem: string;
+  dataReferencia: string;
+  origem: OrigemAviso;
+  alcance: AlcanceAviso;
+  manutencaoIdOrigem?: number | null;
+  condominioId: number;
+  criadoEm: string;
+  destinatarios: AvisoDestinatarioDTO[];
+}
+
 export interface GastoProdutoDTO {
   id: number;
   descricao: string;

@@ -22,18 +22,21 @@ public class ManutencaoService {
     private final SolicitacaoManutencaoRepository solicitacaoManutencaoRepository;
     private final CondominioAcessoService acessoService;
     private final EmailService emailService;
+    private final AvisoService avisoService;
 
     public ManutencaoService(
             ManutencaoRepository manutencaoRepository,
             CondominioRepository condominioRepository,
             SolicitacaoManutencaoRepository solicitacaoManutencaoRepository,
             CondominioAcessoService acessoService,
-            EmailService emailService) {
+            EmailService emailService,
+            AvisoService avisoService) {
         this.manutencaoRepository = manutencaoRepository;
         this.condominioRepository = condominioRepository;
         this.solicitacaoManutencaoRepository = solicitacaoManutencaoRepository;
         this.acessoService = acessoService;
         this.emailService = emailService;
+        this.avisoService = avisoService;
     }
 
     @Transactional
@@ -57,6 +60,7 @@ public class ManutencaoService {
         if (solicitacao != null) {
             solicitacaoManutencaoRepository.delete(solicitacao);
         }
+        avisoService.registrarOuAtualizarAvisoDeManutencao(m);
         emailService.enviarNotificacaoManutencao(m, condominio.getNome());
         dto.setId(m.getId());
         dto.setCondominioId(condominioId);
@@ -88,6 +92,7 @@ public class ManutencaoService {
         m.setPrestador(dto.getPrestador());
         m.setInstrucoesEmail(dto.getInstrucoesEmail());
         m = manutencaoRepository.save(m);
+        avisoService.registrarOuAtualizarAvisoDeManutencao(m);
         if (notificar) {
             emailService.enviarNotificacaoAlteracaoManutencao(m, m.getCondominio().getNome());
         }
