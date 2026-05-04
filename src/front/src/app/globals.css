@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sigac-nav: #1b3266;
+  --sigac-accent: #2f6ce6;
+  --sigac-bg: #f1f5f9;
+  --sigac-card: #ffffff;
+  --sigac-border: #e2e8f0;
+}
+
+body {
+  @apply text-slate-800 antialiased;
+  background: linear-gradient(165deg, #f8fafc 0%, #eef2ff 30%, #f1f5f9 70%, #f0f9ff 100%);
+  min-height: 100vh;
+  background-attachment: fixed;
+}
+
+/* Containers para fundo com imagem + overlay (imagem carregada via <img> no JSX) */
+.page-login-bg {
+  position: relative;
+  min-height: 100vh;
+}
+
+.page-login-bg .page-login-bg-overlay {
+  position: absolute;
+  inset: 0;
+  /* Overlay bem leve para a imagem aparecer; só um véu sutil para legibilidade */
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.4) 0%, rgba(248, 250, 252, 0.35) 50%, rgba(255, 255, 255, 0.4) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.main-internal-bg {
+  position: relative;
+  background-color: #f1f5f9;
+}
+
+/* Imagem fixa só na área à direita da sidebar (sidebar = 14rem),
+   começando abaixo do header (h-14 ≈ 3.5rem) para não cobrir o topo */
+.main-internal-bg .main-internal-bg-img {
+  position: fixed;
+  left: 14rem;
+  top: 3.5rem;
+  width: calc(100vw - 14rem);
+  height: calc(100vh - 3.5rem);
+  object-fit: cover;
+  object-position: center top;
+  z-index: 0;
+}
+
+.main-internal-bg .main-internal-bg-overlay {
+  position: fixed;
+  left: 14rem;
+  top: 3.5rem;
+  right: 0;
+  bottom: 0;
+  /* Overlay leve para o fundo aparecer; conteúdo em cards/tabelas continua legível */
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 0%, rgba(241, 245, 249, 0.4) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-sigac-accent hover:bg-sigac-accent-hover text-white font-medium py-2.5 px-5 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-sigac-accent focus:ring-offset-2;
+  }
+  .btn-secondary {
+    @apply bg-white border border-slate-200 hover:bg-slate-50 text-sigac-nav font-medium py-2.5 px-5 rounded-xl transition-all duration-300 hover:border-slate-300 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2;
+  }
+  .btn-danger {
+    @apply bg-red-500 hover:bg-red-600 text-white font-medium py-2.5 px-5 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+  .card {
+    @apply bg-white rounded-2xl shadow-md border border-white/80 p-6 transition-all duration-300 hover:shadow-lg hover:border-slate-100;
+  }
+  .input {
+    @apply w-full border border-slate-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-sigac-accent focus:border-sigac-accent outline-none transition-all duration-200 placeholder:text-slate-400;
+  }
+  .skeleton {
+    @apply bg-slate-200/80 rounded-lg animate-pulse;
+  }
+  .toast-success {
+    @apply text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 shadow-sm;
+  }
+  .toast-error {
+    @apply text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3 shadow-sm;
+  }
+}

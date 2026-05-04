@@ -7,7 +7,7 @@ funcional que reduza falhas operacionais, otimize o tempo de gestão e aumente a
 transparência administrativa através de um dashboard financeiro.
 
 
-## Integrantes
+### Backend (Java)
 
 * Caio Felix Reis
 * Davi Mendes de Pinho Laudares Rodrigues
@@ -34,3 +34,8 @@ Assim que a primeira versão do sistema estiver disponível, deverá complementa
 * 0.0.1
     * Trabalhando na modelagem do processo de negócio.
 
+```bash
+cd src/front
+npm install
+npm run dev
+```
