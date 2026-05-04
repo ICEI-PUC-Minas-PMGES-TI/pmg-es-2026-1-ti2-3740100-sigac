@@ -39,3 +39,32 @@ cd src/front
 npm install
 npm run dev
 ```
+
+## Seed de demonstração
+
+Os scripts de seed e limpeza do backend ficam em `src/back/scripts/`.
+
+Pré-requisito:
+
+- O backend deve estar em execução em `http://localhost:8080`
+
+Para popular o banco com dados de demonstração de condomínios em Belo Horizonte:
+
+```bash
+cd src/back
+node scripts/seed.js
+```
+
+O script:
+
+- limpa o dataset de demonstração anterior
+- garante a existência do usuário admin padrão
+- cria condomínios, gestores, síndicos, funcionários, inquilinos, arrecadações, gastos, manutenções, avisos e solicitações
+- exibe no final os logins de admin, gestores e síndicos criados
+
+Para remover apenas os dados de demonstração:
+
+```bash
+cd src/back
+node scripts/cleanup.js
+```
