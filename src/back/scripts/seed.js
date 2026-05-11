@@ -7,7 +7,7 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const DATA_DIR = path.join(ROOT_DIR, 'data');
 const DB_FILE_BASE = path.join(DATA_DIR, 'sigac');
 const DEMO_DOMAIN = '@demo.sigac.local';
-const BASE_URL = process.env.SIGAC_BASE_URL || 'http://127.0.0.1:8080';
+const BASE_URL = process.env.SIGAC_API_BASE_URL || 'http://127.0.0.1:8080';
 
 const ADMIN_CREDENTIALS = {
   email: 'admin@sigac.com',

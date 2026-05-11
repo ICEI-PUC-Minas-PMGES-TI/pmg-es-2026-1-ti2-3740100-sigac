@@ -119,6 +119,20 @@ _O documento a seguir apresenta os indicadores de desempenho dos processos._
 
 _A sessão a seguir apresenta a descrição do produto de software desenvolvido._ 
 
+## 7. Configuração por ambiente
+
+Para configuração via ambiente no backend, a convenção adotada utiliza variáveis prefixadas por `SIGAC_`.
+
+- `SIGAC_MAIL_HOST`
+- `SIGAC_MAIL_PORT`
+- `SIGAC_MAIL_USERNAME`
+- `SIGAC_MAIL_PASSWORD`
+- `SIGAC_MAIL_FROM`
+- `SIGAC_JWT_SECRET`
+- `SIGAC_BOOTSTRAP_ADMIN_EMAIL`
+- `SIGAC_BOOTSTRAP_ADMIN_PASSWORD`
+- `SIGAC_API_BASE_URL`
+
 [Documentação da interface do sistema](interface.md)
 
 ## 7. Conclusão
@@ -165,7 +179,6 @@ _Atualizar os links e adicionar novos links para que a estrutura do código este
 
 
 [Vídeo da apresentação final](video/)
-
 
 
 
