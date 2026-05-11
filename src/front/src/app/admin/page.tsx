@@ -10,7 +10,7 @@ import { FormModal } from '@/components/FormModal';
 
 export default function AdminPage() {
   const [condominios, setCondominios] = useState<CondominioDTO[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [carregamento, setCarregamento] = useState(true);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [gestores, setGestores] = useState<UserDTO[]>([]);
   const [sindicos, setSindicos] = useState<UserDTO[]>([]);
@@ -30,7 +30,7 @@ export default function AdminPage() {
   const loadCondominios = () => api<CondominioDTO[]>('/condominios').then(setCondominios);
 
   useEffect(() => {
-    loadCondominios().finally(() => setLoading(false));
+    loadCondominios().finally(() => setCarregamento(false));
   }, []);
 
   useEffect(() => {
@@ -56,12 +56,16 @@ export default function AdminPage() {
       const cnpj = formCond.cnpj?.trim() ? normalizeCnpj(formCond.cnpj) : '';
       await api('/condominios', {
         method: 'POST',
-        body: JSON.stringify({ ...formCond, cnpj }),
+        body: JSON.stringify({
+          ...formCond,
+          cnpj
+        }),
       });
       setFormCond({ nome: '', endereco: '', cnpj: '' });
       setShowFormCond(false);
       loadCondominios();
     } catch (err: unknown) {
+      console.error(err);
       setError(err instanceof Error ? err.message : 'Erro');
     } finally {
       setSubmitting(false);
@@ -76,9 +80,16 @@ export default function AdminPage() {
     try {
       await api(`/condominios/${selectedId}/gestores`, {
         method: 'POST',
-        body: JSON.stringify({ ...formUser, role: 'GESTOR' }),
+        body: JSON.stringify({
+          ...formUser,
+          role: 'GESTOR'
+        }),
       });
-      setFormUser({ nome: '', email: '', password: '' });
+      setFormUser({
+        nome: '',
+        email: '',
+        password: ''
+      });
       setShowFormGestor(false);
       reloadUsers(selectedId);
     } catch (err: unknown) {
@@ -157,7 +168,7 @@ export default function AdminPage() {
     }
   };
 
-  if (loading) {
+  if (carregamento) {
     return (
       <div className="space-y-6">
         <div className="h-8 w-64 skeleton rounded-lg" />
