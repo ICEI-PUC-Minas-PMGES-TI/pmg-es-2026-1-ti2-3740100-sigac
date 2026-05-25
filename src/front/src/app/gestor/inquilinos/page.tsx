@@ -12,22 +12,24 @@ import { FormModal } from '@/components/FormModal';
 export default function InquilinosPage() {
   const searchParams = useSearchParams();
   const condominioId = searchParams.get('condominioId');
-  const [list, setList] = useState<InquilinoDTO[]>([]);
+  const [inquilinos, setInquilinos] = useState<InquilinoDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ nome: '', email: '' });
+  const [inquilinoForm, setInquilinoForm] = useState({ nome: '', email: '' });
   const [error, setError] = useState('');
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [editingInquilinoId, setEditingInquilinoId] = useState<number | null>(null);
+  const [deletingInquilinoId, setDeletingInquilinoId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const load = () => {
+  const carregarInquilinos = () => {
     if (!condominioId) return;
-    api<InquilinoDTO[]>(`/condominios/${condominioId}/inquilinos`).then(setList).finally(() => setLoading(false));
+    api<InquilinoDTO[]>(`/condominios/${condominioId}/inquilinos`)
+      .then(setInquilinos)
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    load();
+    carregarInquilinos();
   }, [condominioId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,21 +37,21 @@ export default function InquilinosPage() {
     if (!condominioId) return;
     setError('');
     try {
-      if (editingId) {
-        await api(`/condominios/${condominioId}/inquilinos/${editingId}`, {
+      if (editingInquilinoId) {
+        await api(`/condominios/${condominioId}/inquilinos/${editingInquilinoId}`, {
           method: 'PUT',
-          body: JSON.stringify({ ...form, condominioId: Number(condominioId) }),
+          body: JSON.stringify({ ...inquilinoForm, condominioId: Number(condominioId) }),
         });
-        setEditingId(null);
+        setEditingInquilinoId(null);
       } else {
         await api(`/condominios/${condominioId}/inquilinos`, {
           method: 'POST',
-          body: JSON.stringify({ ...form, condominioId: Number(condominioId) }),
+          body: JSON.stringify({ ...inquilinoForm, condominioId: Number(condominioId) }),
         });
       }
-      setForm({ nome: '', email: '' });
+      setInquilinoForm({ nome: '', email: '' });
       setShowForm(false);
-      load();
+      carregarInquilinos();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro');
     }
@@ -61,8 +63,8 @@ export default function InquilinosPage() {
     setSubmitting(true);
     try {
       await api(`/condominios/${condominioId}/inquilinos/${id}`, { method: 'DELETE' });
-      setDeletingId(null);
-      load();
+      setDeletingInquilinoId(null);
+      carregarInquilinos();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro ao excluir');
     } finally {
@@ -70,7 +72,7 @@ export default function InquilinosPage() {
     }
   };
 
-  const deletingItem = list.find((i) => i.id === deletingId);
+  const deletingInquilino = inquilinos.find((inquilino) => inquilino.id === deletingInquilinoId);
 
   if (!condominioId) return <div className="card">Selecione um condomínio.</div>;
   if (loading) return <TableSkeleton rows={6} />;
@@ -88,7 +90,11 @@ export default function InquilinosPage() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => { setShowForm(true); setEditingId(null); setForm({ nome: '', email: '' }); }}
+          onClick={() => {
+            setShowForm(true);
+            setEditingInquilinoId(null);
+            setInquilinoForm({ nome: '', email: '' });
+          }}
           className="btn-primary flex items-center gap-2"
         >
           <UserPlus className="w-5 h-5" />
@@ -111,16 +117,43 @@ export default function InquilinosPage() {
 
       <FormModal
         open={showForm}
-        onClose={() => { setShowForm(false); setEditingId(null); }}
-        title={editingId ? 'Editar inquilino' : 'Novo inquilino'}
+        onClose={() => {
+          setShowForm(false);
+          setEditingInquilinoId(null);
+        }}
+        title={editingInquilinoId ? 'Editar inquilino' : 'Novo inquilino'}
         icon={<UserPlus className="w-5 h-5 text-sigac-accent" />}
       >
         <form onSubmit={handleSubmit} className="space-y-3">
-          <input className="input" placeholder="Nome" value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} required />
-          <input type="email" className="input" placeholder="E-mail" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required />
+          <input
+            className="input"
+            placeholder="Nome"
+            value={inquilinoForm.nome}
+            onChange={(e) => setInquilinoForm((currentForm) => ({ ...currentForm, nome: e.target.value }))}
+            required
+          />
+          <input
+            type="email"
+            className="input"
+            placeholder="E-mail"
+            value={inquilinoForm.email}
+            onChange={(e) => setInquilinoForm((currentForm) => ({ ...currentForm, email: e.target.value }))}
+            required
+          />
           <div className="flex gap-2 pt-2">
-            <button type="submit" className="btn-primary">{editingId ? 'Salvar' : 'Cadastrar'}</button>
-            <button type="button" className="btn-secondary" onClick={() => { setShowForm(false); setEditingId(null); }}>Cancelar</button>
+            <button type="submit" className="btn-primary">
+              {editingInquilinoId ? 'Salvar' : 'Cadastrar'}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                setShowForm(false);
+                setEditingInquilinoId(null);
+              }}
+            >
+              Cancelar
+            </button>
           </div>
         </form>
       </FormModal>
@@ -136,22 +169,44 @@ export default function InquilinosPage() {
               </tr>
             </thead>
             <tbody>
-              {list.map((i, idx) => (
+              {inquilinos.map((inquilino, index) => (
                 <motion.tr
-                  key={i.id}
+                  key={inquilino.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.02 * idx }}
-                  className={`border-b border-slate-100 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-sigac-accent/5`}
+                  transition={{ delay: 0.02 * index }}
+                  className={`border-b border-slate-100 transition-colors ${
+                    index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
+                  } hover:bg-sigac-accent/5`}
                 >
-                  <td className="p-3 font-medium text-slate-800">{i.nome}</td>
-                  <td className="p-3 text-slate-600">{i.email}</td>
+                  <td className="p-3 font-medium text-slate-800">{inquilino.nome}</td>
+                  <td className="p-3 text-slate-600">{inquilino.email}</td>
                   <td className="p-2">
                     <div className="flex items-center justify-end gap-1">
-                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors" onClick={() => { setForm({ nome: i.nome, email: i.email }); setEditingId(i.id); setShowForm(true); }} title="Editar" aria-label="Editar">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors"
+                        onClick={() => {
+                          setInquilinoForm({ nome: inquilino.nome, email: inquilino.email });
+                          setEditingInquilinoId(inquilino.id);
+                          setShowForm(true);
+                        }}
+                        title="Editar"
+                        aria-label="Editar"
+                      >
                         <Pencil className="w-5 h-5" />
                       </motion.button>
-                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors" onClick={() => setDeletingId(i.id)} title="Remover" aria-label="Remover">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                        onClick={() => setDeletingInquilinoId(inquilino.id)}
+                        title="Remover"
+                        aria-label="Remover"
+                      >
                         <Trash2 className="w-5 h-5" />
                       </motion.button>
                     </div>
@@ -161,7 +216,7 @@ export default function InquilinosPage() {
             </tbody>
           </table>
         </div>
-        {list.length === 0 && (
+        {inquilinos.length === 0 && (
           <p className="p-8 text-slate-500 text-center">
             Nenhum inquilino cadastrado. Clique em <strong>Novo inquilino</strong> para começar.
           </p>
@@ -169,11 +224,17 @@ export default function InquilinosPage() {
       </motion.div>
 
       <ConfirmModal
-        open={deletingId !== null}
-        onClose={() => setDeletingId(null)}
-        onConfirm={async () => { if (deletingId !== null) await handleDelete(deletingId); }}
+        open={deletingInquilinoId !== null}
+        onClose={() => setDeletingInquilinoId(null)}
+        onConfirm={async () => {
+          if (deletingInquilinoId !== null) await handleDelete(deletingInquilinoId);
+        }}
         title="Excluir inquilino?"
-        description={deletingItem ? `"${deletingItem.nome}" (${deletingItem.email}) deixará de receber notificações de manutenção. O registro será removido. Deseja continuar?` : ''}
+        description={
+          deletingInquilino
+            ? `"${deletingInquilino.nome}" (${deletingInquilino.email}) deixará de receber notificações de manutenção. O registro será removido. Deseja continuar?`
+            : ''
+        }
         confirmLabel="Sim, excluir"
         cancelLabel="Cancelar"
         variant="danger"
