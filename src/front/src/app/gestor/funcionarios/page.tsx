@@ -12,51 +12,67 @@ import { FormModal } from '@/components/FormModal';
 export default function FuncionariosPage() {
   const searchParams = useSearchParams();
   const condominioId = searchParams.get('condominioId');
-  const [list, setList] = useState<FuncionarioDTO[]>([]);
+  const [funcionarios, setFuncionarios] = useState<FuncionarioDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' });
+  const [funcionarioForm, setFuncionarioForm] = useState({
+    nome: '',
+    funcao: 'Porteiro',
+    funcaoOutro: '',
+    valorMensal: '',
+  });
   const [error, setError] = useState('');
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [editingFuncionarioId, setEditingFuncionarioId] = useState<number | null>(null);
+  const [deletingFuncionarioId, setDeletingFuncionarioId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const load = () => {
+  const carregarFuncionarios = () => {
     if (!condominioId) return;
-    api<FuncionarioDTO[]>(`/condominios/${condominioId}/funcionarios`).then(setList).finally(() => setLoading(false));
+    api<FuncionarioDTO[]>(`/condominios/${condominioId}/funcionarios`)
+      .then(setFuncionarios)
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    load();
+    carregarFuncionarios();
   }, [condominioId]);
 
-  const funcaoEnviar = form.funcao === 'Outro' ? (form.funcaoOutro?.trim() || 'Outro') : form.funcao;
+  const funcaoParaEnvio =
+    funcionarioForm.funcao === 'Outro'
+      ? funcionarioForm.funcaoOutro?.trim() || 'Outro'
+      : funcionarioForm.funcao;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!condominioId) return;
-    if (form.funcao === 'Outro' && !form.funcaoOutro?.trim()) {
+    if (funcionarioForm.funcao === 'Outro' && !funcionarioForm.funcaoOutro?.trim()) {
       setError('Informe a função quando selecionar "Outro".');
       return;
     }
     setError('');
     try {
-      const payload = { nome: form.nome, funcao: funcaoEnviar, valorMensal: Number(form.valorMensal), condominioId: Number(condominioId) };
-      if (editingId) {
-        await api(`/condominios/${condominioId}/funcionarios/${editingId}`, {
+      const funcionarioPayload = {
+        nome: funcionarioForm.nome,
+        funcao: funcaoParaEnvio,
+        valorMensal: Number(funcionarioForm.valorMensal),
+        condominioId: Number(condominioId),
+      };
+
+      if (editingFuncionarioId) {
+        await api(`/condominios/${condominioId}/funcionarios/${editingFuncionarioId}`, {
           method: 'PUT',
-          body: JSON.stringify(payload),
+          body: JSON.stringify(funcionarioPayload),
         });
-        setEditingId(null);
+        setEditingFuncionarioId(null);
       } else {
         await api(`/condominios/${condominioId}/funcionarios`, {
           method: 'POST',
-          body: JSON.stringify(payload),
+          body: JSON.stringify(funcionarioPayload),
         });
       }
-      setForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' });
+      setFuncionarioForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' });
       setShowForm(false);
-      load();
+      carregarFuncionarios();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro');
     }
@@ -68,8 +84,8 @@ export default function FuncionariosPage() {
     setSubmitting(true);
     try {
       await api(`/condominios/${condominioId}/funcionarios/${id}`, { method: 'DELETE' });
-      setDeletingId(null);
-      load();
+      setDeletingFuncionarioId(null);
+      carregarFuncionarios();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro ao excluir');
     } finally {
@@ -79,21 +95,21 @@ export default function FuncionariosPage() {
 
   const funcoes = ['Porteiro', 'Zelador', 'Eletricista', 'Pedreiro', 'Outro'];
 
-  const isOutro = form.funcao === 'Outro';
-  const aoAbrirForm = (f?: FuncionarioDTO) => {
-    const funcao = f?.funcao ?? 'Porteiro';
+  const isFuncaoOutro = funcionarioForm.funcao === 'Outro';
+  const aoAbrirFormularioFuncionario = (funcionario?: FuncionarioDTO) => {
+    const funcao = funcionario?.funcao ?? 'Porteiro';
     const ehOutro = funcoes.indexOf(funcao) < 0;
-    setForm({
-      nome: f?.nome ?? '',
+    setFuncionarioForm({
+      nome: funcionario?.nome ?? '',
       funcao: ehOutro ? 'Outro' : funcao,
       funcaoOutro: ehOutro ? funcao : '',
-      valorMensal: f != null ? String(f.valorMensal) : '',
+      valorMensal: funcionario != null ? String(funcionario.valorMensal) : '',
     });
-    setEditingId(f?.id ?? null);
+    setEditingFuncionarioId(funcionario?.id ?? null);
     setShowForm(true);
   };
 
-  const deletingItem = list.find((f) => f.id === deletingId);
+  const deletingFuncionario = funcionarios.find((funcionario) => funcionario.id === deletingFuncionarioId);
 
   if (!condominioId) return <div className="card">Selecione um condomínio.</div>;
   if (loading) return <TableSkeleton rows={6} />;
@@ -108,7 +124,7 @@ export default function FuncionariosPage() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => aoAbrirForm()}
+          onClick={() => aoAbrirFormularioFuncionario()}
           className="btn-primary flex items-center gap-2"
         >
           <UserPlus className="w-5 h-5" />
@@ -131,27 +147,72 @@ export default function FuncionariosPage() {
 
       <FormModal
         open={showForm}
-        onClose={() => { setShowForm(false); setEditingId(null); setForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' }); }}
-        title={editingId ? 'Editar funcionário' : 'Novo funcionário'}
+        onClose={() => {
+          setShowForm(false);
+          setEditingFuncionarioId(null);
+          setFuncionarioForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' });
+        }}
+        title={editingFuncionarioId ? 'Editar funcionário' : 'Novo funcionário'}
         icon={<UserPlus className="w-5 h-5 text-sigac-accent" />}
       >
         <form onSubmit={handleSubmit} className="space-y-3">
-          <input className="input" placeholder="Nome" value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} required />
-          <select className="input" value={form.funcao} onChange={(e) => setForm((prev) => ({ ...prev, funcao: e.target.value, funcaoOutro: e.target.value === 'Outro' ? prev.funcaoOutro : '' }))}>
-            {funcoes.map((f) => <option key={f} value={f}>{f}</option>)}
+          <input
+            className="input"
+            placeholder="Nome"
+            value={funcionarioForm.nome}
+            onChange={(e) => setFuncionarioForm((currentForm) => ({ ...currentForm, nome: e.target.value }))}
+            required
+          />
+          <select
+            className="input"
+            value={funcionarioForm.funcao}
+            onChange={(e) =>
+              setFuncionarioForm((currentForm) => ({
+                ...currentForm,
+                funcao: e.target.value,
+                funcaoOutro: e.target.value === 'Outro' ? currentForm.funcaoOutro : '',
+              }))
+            }
+          >
+            {funcoes.map((funcao) => (
+              <option key={funcao} value={funcao}>
+                {funcao}
+              </option>
+            ))}
           </select>
-          {isOutro && (
+          {isFuncaoOutro && (
             <input
               className="input"
               placeholder="Qual a função? (ex.: Pintor, Encanador)"
-              value={form.funcaoOutro}
-              onChange={(e) => setForm((f) => ({ ...f, funcaoOutro: e.target.value }))}
+              value={funcionarioForm.funcaoOutro}
+              onChange={(e) => setFuncionarioForm((currentForm) => ({ ...currentForm, funcaoOutro: e.target.value }))}
             />
           )}
-          <input type="number" step="0.01" min="0" className="input" placeholder="Valor mensal (R$)" value={form.valorMensal} onChange={(e) => setForm((f) => ({ ...f, valorMensal: e.target.value }))} required />
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            className="input"
+            placeholder="Valor mensal (R$)"
+            value={funcionarioForm.valorMensal}
+            onChange={(e) => setFuncionarioForm((currentForm) => ({ ...currentForm, valorMensal: e.target.value }))}
+            required
+          />
           <div className="flex gap-2 pt-2">
-            <button type="submit" className="btn-primary">{editingId ? 'Salvar' : 'Cadastrar'}</button>
-            <button type="button" className="btn-secondary" onClick={() => { setShowForm(false); setEditingId(null); setForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' }); }}>Cancelar</button>
+            <button type="submit" className="btn-primary">
+              {editingFuncionarioId ? 'Salvar' : 'Cadastrar'}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                setShowForm(false);
+                setEditingFuncionarioId(null);
+                setFuncionarioForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' });
+              }}
+            >
+              Cancelar
+            </button>
           </div>
         </form>
       </FormModal>
@@ -173,23 +234,43 @@ export default function FuncionariosPage() {
               </tr>
             </thead>
             <tbody>
-              {list.map((f, i) => (
+              {funcionarios.map((funcionario, index) => (
                 <motion.tr
-                  key={f.id}
+                  key={funcionario.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.02 * i }}
-                  className={`border-b border-slate-100 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-sigac-accent/5`}
+                  transition={{ delay: 0.02 * index }}
+                  className={`border-b border-slate-100 transition-colors ${
+                    index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
+                  } hover:bg-sigac-accent/5`}
                 >
-                  <td className="p-3 font-medium text-slate-800">{f.nome}</td>
-                  <td className="p-3 text-slate-600">{f.funcao}</td>
-                  <td className="p-3 text-right font-medium text-sigac-nav">R$ {Number(f.valorMensal).toFixed(2).replace('.', ',')}</td>
+                  <td className="p-3 font-medium text-slate-800">{funcionario.nome}</td>
+                  <td className="p-3 text-slate-600">{funcionario.funcao}</td>
+                  <td className="p-3 text-right font-medium text-sigac-nav">
+                    R$ {Number(funcionario.valorMensal).toFixed(2).replace('.', ',')}
+                  </td>
                   <td className="p-2">
                     <div className="flex items-center justify-end gap-1">
-                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors" onClick={() => aoAbrirForm(f)} title="Editar" aria-label="Editar">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors"
+                        onClick={() => aoAbrirFormularioFuncionario(funcionario)}
+                        title="Editar"
+                        aria-label="Editar"
+                      >
                         <Pencil className="w-5 h-5" />
                       </motion.button>
-                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors" onClick={() => setDeletingId(f.id)} title="Excluir" aria-label="Excluir">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                        onClick={() => setDeletingFuncionarioId(funcionario.id)}
+                        title="Excluir"
+                        aria-label="Excluir"
+                      >
                         <Trash2 className="w-5 h-5" />
                       </motion.button>
                     </div>
@@ -199,7 +280,7 @@ export default function FuncionariosPage() {
             </tbody>
           </table>
         </div>
-        {list.length === 0 && (
+        {funcionarios.length === 0 && (
           <p className="p-8 text-slate-500 text-center">
             Nenhum funcionário cadastrado. Clique em <strong>Novo funcionário</strong> para começar.
           </p>
@@ -207,11 +288,17 @@ export default function FuncionariosPage() {
       </motion.div>
 
       <ConfirmModal
-        open={deletingId !== null}
-        onClose={() => setDeletingId(null)}
-        onConfirm={async () => { if (deletingId !== null) await handleDelete(deletingId); }}
+        open={deletingFuncionarioId !== null}
+        onClose={() => setDeletingFuncionarioId(null)}
+        onConfirm={async () => {
+          if (deletingFuncionarioId !== null) await handleDelete(deletingFuncionarioId);
+        }}
         title="Excluir funcionário?"
-        description={deletingItem ? `Ao excluir "${deletingItem.nome}" (${deletingItem.funcao}), o registro será removido permanentemente. Esta ação não pode ser desfeita.` : ''}
+        description={
+          deletingFuncionario
+            ? `Ao excluir "${deletingFuncionario.nome}" (${deletingFuncionario.funcao}), o registro será removido permanentemente. Esta ação não pode ser desfeita.`
+            : ''
+        }
         confirmLabel="Sim, excluir"
         cancelLabel="Cancelar"
         variant="danger"
