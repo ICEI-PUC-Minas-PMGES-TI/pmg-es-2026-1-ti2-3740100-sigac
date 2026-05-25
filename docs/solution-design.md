@@ -4,7 +4,7 @@
 
 _Abaixo segue o modelo de dados por meio de um modelo relacional revisado para contemplar os processos 1, 2, 3, 4, 5 e 6, alinhado aos documentos de processo e ao wireframe da aplicação._
 
-![Modelo relacional](images/db-diag.png)
+![Modelo relacional](ui/images/Banco-De-Dados-Sigac.png)
 
 #### Modelo relacional revisado (SQL)
 
