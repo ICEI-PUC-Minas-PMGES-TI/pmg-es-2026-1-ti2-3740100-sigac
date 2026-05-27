@@ -16,39 +16,53 @@ function monthNamePtBr(mes: number) {
 export default function GastosPage() {
   const searchParams = useSearchParams();
   const condominioId = searchParams.get('condominioId');
-  const [list, setList] = useState<GastoProdutoDTO[]>([]);
+  const [gastos, setGastos] = useState<GastoProdutoDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const now = useMemo(() => new Date(), []);
-  const [anoFiltro, setAnoFiltro] = useState<number | 'todos'>(now.getFullYear());
-  const [mesFiltro, setMesFiltro] = useState<number | 'todos'>(now.getMonth() + 1);
+  const dataAtual = useMemo(() => new Date(), []);
+  const [anoFiltro, setAnoFiltro] = useState<number | 'todos'>(dataAtual.getFullYear());
+  const [mesFiltro, setMesFiltro] = useState<number | 'todos'>(dataAtual.getMonth() + 1);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ descricao: '', valor: '', data: new Date().toISOString().slice(0, 10), lojaFornecedor: '' });
+  const [gastoForm, setGastoForm] = useState({
+    descricao: '',
+    valor: '',
+    data: new Date().toISOString().slice(0, 10),
+    lojaFornecedor: '',
+  });
   const [error, setError] = useState('');
-  const [editing, setEditing] = useState<GastoProdutoDTO | null>(null);
-  const [editForm, setEditForm] = useState({ descricao: '', valor: '', data: '', lojaFornecedor: '' });
+  const [editingGasto, setEditingGasto] = useState<GastoProdutoDTO | null>(null);
+  const [editGastoForm, setEditGastoForm] = useState({
+    descricao: '',
+    valor: '',
+    data: '',
+    lojaFornecedor: '',
+  });
   const [submitting, setSubmitting] = useState(false);
   const [deletingGasto, setDeletingGasto] = useState<GastoProdutoDTO | null>(null);
 
-  const load = () => {
+  const carregarGastos = () => {
     if (!condominioId) return;
-    api<GastoProdutoDTO[]>(`/condominios/${condominioId}/gastos-produto`).then(setList).finally(() => setLoading(false));
+    api<GastoProdutoDTO[]>(`/condominios/${condominioId}/gastos-produto`)
+      .then(setGastos)
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    load();
+    carregarGastos();
   }, [condominioId]);
 
-  const filteredList = useMemo(() => {
-    if (anoFiltro === 'todos' && mesFiltro === 'todos') return list;
-    return list.filter((g) => {
-      const d = new Date(g.data);
-      const y = d.getFullYear();
-      const m = d.getMonth() + 1;
-      if (anoFiltro !== 'todos' && y !== anoFiltro) return false;
-      if (mesFiltro !== 'todos' && m !== mesFiltro) return false;
+  const gastosFiltrados = useMemo(() => {
+    if (anoFiltro === 'todos' && mesFiltro === 'todos') return gastos;
+
+    return gastos.filter((gasto) => {
+      const dataGasto = new Date(gasto.data);
+      const anoGasto = dataGasto.getFullYear();
+      const mesGasto = dataGasto.getMonth() + 1;
+
+      if (anoFiltro !== 'todos' && anoGasto !== anoFiltro) return false;
+      if (mesFiltro !== 'todos' && mesGasto !== mesFiltro) return false;
       return true;
     });
-  }, [list, anoFiltro, mesFiltro]);
+  }, [gastos, anoFiltro, mesFiltro]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,50 +72,55 @@ export default function GastosPage() {
       await api(`/condominios/${condominioId}/gastos-produto`, {
         method: 'POST',
         body: JSON.stringify({
-          descricao: form.descricao || undefined,
-          valor: Number(form.valor),
-          data: form.data,
-          lojaFornecedor: form.lojaFornecedor || undefined,
+          descricao: gastoForm.descricao || undefined,
+          valor: Number(gastoForm.valor),
+          data: gastoForm.data,
+          lojaFornecedor: gastoForm.lojaFornecedor || undefined,
           condominioId: Number(condominioId),
         }),
       });
-      setForm({ descricao: '', valor: '', data: new Date().toISOString().slice(0, 10), lojaFornecedor: '' });
+      setGastoForm({
+        descricao: '',
+        valor: '',
+        data: new Date().toISOString().slice(0, 10),
+        lojaFornecedor: '',
+      });
       setShowForm(false);
-      load();
+      carregarGastos();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro');
     }
   };
 
-  const startEdit = (g: GastoProdutoDTO) => {
-    setEditing(g);
-    setEditForm({
-      descricao: g.descricao ?? '',
-      valor: String(g.valor),
-      data: g.data.slice(0, 10),
-      lojaFornecedor: g.lojaFornecedor ?? '',
+  const startEdit = (gasto: GastoProdutoDTO) => {
+    setEditingGasto(gasto);
+    setEditGastoForm({
+      descricao: gasto.descricao ?? '',
+      valor: String(gasto.valor),
+      data: gasto.data.slice(0, 10),
+      lojaFornecedor: gasto.lojaFornecedor ?? '',
     });
     setError('');
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!condominioId || !editing) return;
+    if (!condominioId || !editingGasto) return;
     setError('');
     setSubmitting(true);
     try {
-      await api(`/condominios/${condominioId}/gastos-produto/${editing.id}`, {
+      await api(`/condominios/${condominioId}/gastos-produto/${editingGasto.id}`, {
         method: 'PUT',
         body: JSON.stringify({
-          descricao: editForm.descricao || undefined,
-          valor: Number(editForm.valor),
-          data: editForm.data,
-          lojaFornecedor: editForm.lojaFornecedor || undefined,
+          descricao: editGastoForm.descricao || undefined,
+          valor: Number(editGastoForm.valor),
+          data: editGastoForm.data,
+          lojaFornecedor: editGastoForm.lojaFornecedor || undefined,
           condominioId: Number(condominioId),
         }),
       });
-      setEditing(null);
-      load();
+      setEditingGasto(null);
+      carregarGastos();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro ao atualizar');
     } finally {
@@ -115,9 +134,9 @@ export default function GastosPage() {
     setSubmitting(true);
     try {
       await api(`/condominios/${condominioId}/gastos-produto/${g.id}`, { method: 'DELETE' });
-      if (editing?.id === g.id) setEditing(null);
+      if (editingGasto?.id === g.id) setEditingGasto(null);
       setDeletingGasto(null);
-      load();
+      carregarGastos();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro ao excluir');
     } finally {
@@ -138,7 +157,10 @@ export default function GastosPage() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => { setShowForm(true); setError(''); }}
+          onClick={() => {
+            setShowForm(true);
+            setError('');
+          }}
           className="btn-primary flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
@@ -163,8 +185,10 @@ export default function GastosPage() {
             }}
           >
             <option value="todos">Todos</option>
-            {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map((y) => (
-              <option key={y} value={y}>{y}</option>
+            {[dataAtual.getFullYear() - 1, dataAtual.getFullYear(), dataAtual.getFullYear() + 1].map((ano) => (
+              <option key={ano} value={ano}>
+                {ano}
+              </option>
             ))}
           </select>
         </label>
@@ -178,8 +202,10 @@ export default function GastosPage() {
             title={anoFiltro === 'todos' ? 'Selecione um ano para filtrar por mês' : undefined}
           >
             <option value="todos">Todos</option>
-            {[1,2,3,4,5,6,7,8,9,10,11,12].map((m) => (
-              <option key={m} value={m}>{monthNamePtBr(m)}</option>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((mes) => (
+              <option key={mes} value={mes}>
+                {monthNamePtBr(mes)}
+              </option>
             ))}
           </select>
         </label>
@@ -205,32 +231,92 @@ export default function GastosPage() {
         icon={<Receipt className="w-5 h-5 text-sigac-accent" />}
       >
         <form onSubmit={handleSubmit} className="space-y-3">
-          <input className="input" placeholder="Descrição (opcional, ex: cloro para piscina)" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} />
-          <input type="number" step="0.01" min="0" className="input" placeholder="Valor (R$)" value={form.valor} onChange={(e) => setForm((f) => ({ ...f, valor: e.target.value }))} required />
-          <input type="date" className="input" value={form.data} onChange={(e) => setForm((f) => ({ ...f, data: e.target.value }))} required />
-          <input className="input" placeholder="Loja/fornecedor" value={form.lojaFornecedor} onChange={(e) => setForm((f) => ({ ...f, lojaFornecedor: e.target.value }))} />
+          <input
+            className="input"
+            placeholder="Descrição (opcional, ex: cloro para piscina)"
+            value={gastoForm.descricao}
+            onChange={(e) => setGastoForm((currentForm) => ({ ...currentForm, descricao: e.target.value }))}
+          />
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            className="input"
+            placeholder="Valor (R$)"
+            value={gastoForm.valor}
+            onChange={(e) => setGastoForm((currentForm) => ({ ...currentForm, valor: e.target.value }))}
+            required
+          />
+          <input
+            type="date"
+            className="input"
+            value={gastoForm.data}
+            onChange={(e) => setGastoForm((currentForm) => ({ ...currentForm, data: e.target.value }))}
+            required
+          />
+          <input
+            className="input"
+            placeholder="Loja/fornecedor"
+            value={gastoForm.lojaFornecedor}
+            onChange={(e) => setGastoForm((currentForm) => ({ ...currentForm, lojaFornecedor: e.target.value }))}
+          />
           <div className="flex gap-2 pt-2">
-            <button type="submit" className="btn-primary">Registrar</button>
-            <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>Cancelar</button>
+            <button type="submit" className="btn-primary">
+              Registrar
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>
+              Cancelar
+            </button>
           </div>
         </form>
       </FormModal>
 
       <FormModal
-        open={editing !== null}
-        onClose={() => setEditing(null)}
+        open={editingGasto !== null}
+        onClose={() => setEditingGasto(null)}
         title="Editar gasto"
         icon={<Pencil className="w-5 h-5 text-sigac-accent" />}
       >
-        {editing && (
+        {editingGasto && (
           <form onSubmit={handleUpdate} className="space-y-3">
-            <input className="input" placeholder="Descrição (opcional)" value={editForm.descricao} onChange={(e) => setEditForm((f) => ({ ...f, descricao: e.target.value }))} />
-            <input type="number" step="0.01" min="0" className="input" placeholder="Valor (R$)" value={editForm.valor} onChange={(e) => setEditForm((f) => ({ ...f, valor: e.target.value }))} required />
-            <input type="date" className="input" value={editForm.data} onChange={(e) => setEditForm((f) => ({ ...f, data: e.target.value }))} required />
-            <input className="input" placeholder="Loja/fornecedor" value={editForm.lojaFornecedor} onChange={(e) => setEditForm((f) => ({ ...f, lojaFornecedor: e.target.value }))} />
+            <input
+              className="input"
+              placeholder="Descrição (opcional)"
+              value={editGastoForm.descricao}
+              onChange={(e) => setEditGastoForm((currentForm) => ({ ...currentForm, descricao: e.target.value }))}
+            />
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              className="input"
+              placeholder="Valor (R$)"
+              value={editGastoForm.valor}
+              onChange={(e) => setEditGastoForm((currentForm) => ({ ...currentForm, valor: e.target.value }))}
+              required
+            />
+            <input
+              type="date"
+              className="input"
+              value={editGastoForm.data}
+              onChange={(e) => setEditGastoForm((currentForm) => ({ ...currentForm, data: e.target.value }))}
+              required
+            />
+            <input
+              className="input"
+              placeholder="Loja/fornecedor"
+              value={editGastoForm.lojaFornecedor}
+              onChange={(e) =>
+                setEditGastoForm((currentForm) => ({ ...currentForm, lojaFornecedor: e.target.value }))
+              }
+            />
             <div className="flex gap-2 pt-2">
-              <button type="submit" className="btn-primary" disabled={submitting}>{submitting ? 'Salvando...' : 'Salvar'}</button>
-              <button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancelar</button>
+              <button type="submit" className="btn-primary" disabled={submitting}>
+                {submitting ? 'Salvando...' : 'Salvar'}
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => setEditingGasto(null)}>
+                Cancelar
+              </button>
             </div>
           </form>
         )}
@@ -249,24 +335,44 @@ export default function GastosPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredList.map((g, i) => (
+              {gastosFiltrados.map((gasto, index) => (
                 <motion.tr
-                  key={g.id}
+                  key={gasto.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.02 * i }}
-                  className={`border-b border-slate-100 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-sigac-accent/5`}
+                  transition={{ delay: 0.02 * index }}
+                  className={`border-b border-slate-100 transition-colors ${
+                    index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
+                  } hover:bg-sigac-accent/5`}
                 >
-                  <td className="p-3 text-slate-700">{new Date(g.data).toLocaleDateString('pt-BR')}</td>
-                  <td className="p-3 text-slate-600">{g.descricao ?? '—'}</td>
-                  <td className="p-3 text-slate-600">{g.lojaFornecedor ?? '—'}</td>
-                  <td className="p-3 text-right font-medium text-sigac-nav">R$ {Number(g.valor).toFixed(2).replace('.', ',')}</td>
+                  <td className="p-3 text-slate-700">{new Date(gasto.data).toLocaleDateString('pt-BR')}</td>
+                  <td className="p-3 text-slate-600">{gasto.descricao ?? '—'}</td>
+                  <td className="p-3 text-slate-600">{gasto.lojaFornecedor ?? '—'}</td>
+                  <td className="p-3 text-right font-medium text-sigac-nav">
+                    R$ {Number(gasto.valor).toFixed(2).replace('.', ',')}
+                  </td>
                   <td className="p-2">
                     <div className="flex items-center justify-end gap-1">
-                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors" onClick={() => startEdit(g)} title="Editar" aria-label="Editar">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors"
+                        onClick={() => startEdit(gasto)}
+                        title="Editar"
+                        aria-label="Editar"
+                      >
                         <Pencil className="w-5 h-5" />
                       </motion.button>
-                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors" onClick={() => setDeletingGasto(g)} title="Excluir" aria-label="Excluir">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                        onClick={() => setDeletingGasto(gasto)}
+                        title="Excluir"
+                        aria-label="Excluir"
+                      >
                         <Trash2 className="w-5 h-5" />
                       </motion.button>
                     </div>
@@ -276,7 +382,7 @@ export default function GastosPage() {
             </tbody>
           </table>
         </div>
-        {filteredList.length === 0 && (
+        {gastosFiltrados.length === 0 && (
           <p className="p-8 text-slate-500 text-center">
             Nenhum gasto encontrado para o filtro selecionado.
           </p>
@@ -286,9 +392,19 @@ export default function GastosPage() {
       <ConfirmModal
         open={deletingGasto !== null}
         onClose={() => setDeletingGasto(null)}
-        onConfirm={async () => { if (deletingGasto) await handleDelete(deletingGasto); }}
+        onConfirm={async () => {
+          if (deletingGasto) await handleDelete(deletingGasto);
+        }}
         title="Excluir este gasto?"
-        description={deletingGasto ? `O lançamento de ${new Date(deletingGasto.data).toLocaleDateString('pt-BR')} (R$ ${Number(deletingGasto.valor).toFixed(2).replace('.', ',')}) será removido. Esta ação não pode ser desfeita.` : ''}
+        description={
+          deletingGasto
+            ? `O lançamento de ${new Date(deletingGasto.data).toLocaleDateString('pt-BR')} (R$ ${Number(
+                deletingGasto.valor,
+              )
+                .toFixed(2)
+                .replace('.', ',')}) será removido. Esta ação não pode ser desfeita.`
+            : ''
+        }
         confirmLabel="Sim, excluir"
         cancelLabel="Cancelar"
         variant="danger"

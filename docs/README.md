@@ -20,7 +20,6 @@ Professores:
 
 * Luiz Carlos da Silva
 
-** Prof. Nome do Prof 3 **
 
 ---
 
@@ -104,6 +103,8 @@ As principais propostas de melhoria são:
 
 _O documento a seguir apresenta o detalhamento do projeto da solução. São apresentadas duas seções que descrevem, respectivamente: modelo relacional e tecnologias._
 
+[Detalhamento das atividades](relatorio-detalhamento-atividades.md "Detalhamento das atividades")
+
 [Projeto da solução](solution-design.md "Detalhamento do projeto da solução: modelo relacional e tecnologias.")
 
 
@@ -117,6 +118,20 @@ _O documento a seguir apresenta os indicadores de desempenho dos processos._
 ## 6. Interface do sistema
 
 _A sessão a seguir apresenta a descrição do produto de software desenvolvido._ 
+
+## 7. Configuração por ambiente
+
+Para configuração via ambiente no backend, a convenção adotada utiliza variáveis prefixadas por `SIGAC_`.
+
+- `SIGAC_MAIL_HOST`
+- `SIGAC_MAIL_PORT`
+- `SIGAC_MAIL_USERNAME`
+- `SIGAC_MAIL_PASSWORD`
+- `SIGAC_MAIL_FROM`
+- `SIGAC_JWT_SECRET`
+- `SIGAC_BOOTSTRAP_ADMIN_EMAIL`
+- `SIGAC_BOOTSTRAP_ADMIN_PASSWORD`
+- `SIGAC_API_BASE_URL`
 
 [Documentação da interface do sistema](interface.md)
 
@@ -164,7 +179,6 @@ _Atualizar os links e adicionar novos links para que a estrutura do código este
 
 
 [Vídeo da apresentação final](video/)
-
 
 
 

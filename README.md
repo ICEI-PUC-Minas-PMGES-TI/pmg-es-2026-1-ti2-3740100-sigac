@@ -20,6 +20,47 @@ npm install
 npm run dev
 ```
 
+## Seed de demonstração
+
+Os scripts de seed e limpeza do backend ficam em `src/back/scripts/`.
+
+Pré-requisito:
+
+- O backend deve estar em execução em `http://localhost:8080`
+- Para sobrescrever a URL da API no seed, use `SIGAC_API_BASE_URL`
+
+Variáveis de ambiente do backend:
+
+- `SIGAC_MAIL_HOST`
+- `SIGAC_MAIL_PORT`
+- `SIGAC_MAIL_USERNAME`
+- `SIGAC_MAIL_PASSWORD`
+- `SIGAC_MAIL_FROM`
+- `SIGAC_JWT_SECRET`
+- `SIGAC_BOOTSTRAP_ADMIN_EMAIL`
+- `SIGAC_BOOTSTRAP_ADMIN_PASSWORD`
+
+Para popular o banco com dados de demonstração de condomínios em Belo Horizonte:
+
+```bash
+cd src/back
+node scripts/seed.js
+```
+
+O script:
+
+- limpa o dataset de demonstração anterior
+- garante a existência do usuário admin padrão
+- cria condomínios, gestores, síndicos, funcionários, inquilinos, arrecadações, gastos, manutenções, avisos e solicitações
+- exibe no final os logins de admin, gestores e síndicos criados
+
+Para remover apenas os dados de demonstração:
+
+```bash
+cd src/back
+node scripts/cleanup.js
+```
+
 ## Alunos integrantes da equipe
 
 * Caio Felix Reis
@@ -35,6 +76,8 @@ npm run dev
 
 ## Histórico de versões
 
+* 0.1.2
+    * CHANGE: Ajuste textual no README sem impacto funcional.
 * 0.1.1
     * CHANGE: Atualização das documentações. Código permaneceu inalterado.
 * 0.1.0

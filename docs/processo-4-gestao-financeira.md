@@ -2,12 +2,17 @@
 
 **Nome do Processo:** Gestão Financeira (Receitas e Despesas)
 
-![Exemplo de um Modelo BPMN do PROCESSO 4](images/Sigac%20BPMN%20G%26F.jpg "Modelo BPMN do Processo 4.")
+![Gestão Financeira](images/gestaoFinanceira1.png)
+
+**Telas relacionadas (UI):**
+
+- **UI 5.1 - Tela de gestao financeira (visao geral / dashboard)**: consolidado do periodo, graficos e acompanhamento.
+- **UI 5.2 - Tela de gestao financeira (lancamentos / detalhamento)**: cadastro e consulta de receitas/despesas, anexos e geracao de relatorio.
 
 **Oportunidades de melhoria:**
 
-  * **Conciliação Bancária Automática:** Integrar o sistema com a API do banco ou permitir a importação de arquivos OFX para que os lançamentos de receitas (como pagamento de boletos pelos moradores) e despesas corriqueiras sejam preenchidos automaticamente, reduzindo o trabalho manual do Gestor.
-  * **Dashboards Dinâmicos:** Em vez de depender apenas da atividade "Gerar relatório", criar um painel interativo (dashboard) em tempo real para o Síndico, enviando notificações automáticas caso as despesas ultrapassem o orçamento previsto.
+  * **Conciliação Bancária Automática:** Integrar o sistema com a API do banco ou permitir a importação de arquivos OFX para que os lançamentos de receitas (como pagamento de boletos pelos m[...]
+  * **Dashboards Dinâmicos:** Em vez de depender apenas da atividade "Gerar relatório", criar um painel interativo (dashboard) em tempo real para o Síndico, enviando notificações automáticas[...]
 
 #### Detalhamento das atividades
 
@@ -80,3 +85,11 @@
 | --- | --- | --- |
 | Concluir Análise | Fim do Processo | default |
 | Imprimir Tela | Própria atividade | |
+
+![Tela de gestão financeira](ui/images/novoGasto.png "Tela de gestao financeira")
+![Tela de gestão financeira](ui/images/listarGasto.png "Tela de gestao financeira")
+![Tela de gestão financeira](ui/images/editarGasto.png "Tela de gestao financeira")
+![Tela de gestão financeira](ui/images/excluirGasto.png "Tela de gestao financeira")
+![Tela de gestão financeira](ui/images/gf1.jpeg "Tela de gestao financeira")
+![Tela de gestão financeira](ui/images/gf2.jpeg "Tela de gestao financeira")
+
