@@ -584,7 +584,7 @@ export default function GestorDashboardPage() {
             <p className="text-sm text-slate-600 mb-3">
               Use este bloco como base para enviar ao setor financeiro ou anexar em prestação de contas.
             </p>
-            <div className="text-sm text-slate-700 bg-white p-4 rounded-xl border border-slate-200 font-mono whitespace-pre-wrap shadow-inner">
+            <div className="text-sm text-slate-700 bg-white p-4 rounded-xl border border-slate-200 whitespace-pre-wrap shadow-inner">
 {`Relatório mensal – ${data.nomeCondominio}
 Período: ${new Date(ano, mes - 1).toLocaleString('pt-BR', { month: 'long' })}/${ano}
 

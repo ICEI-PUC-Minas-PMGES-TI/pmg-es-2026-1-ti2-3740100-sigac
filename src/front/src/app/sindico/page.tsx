@@ -253,7 +253,7 @@ export default function SindicoDashboardPage() {
           <section className="card bg-gradient-to-br from-slate-50 to-white border-slate-200/80">
             <h2 className="text-lg font-semibold text-sigac-nav mb-2">Resumo para relatório (financeiro)</h2>
             <p className="text-sm text-slate-600 mb-3">Use como base para prestação de contas.</p>
-            <div className="text-sm text-slate-700 bg-white p-4 rounded-xl border border-slate-200 font-mono whitespace-pre-wrap shadow-inner">
+            <div className="text-sm text-slate-700 bg-white p-4 rounded-xl border border-slate-200 whitespace-pre-wrap shadow-inner">
 {`Relatório mensal – ${data.nomeCondominio}
 Período: ${new Date(ano, mes - 1).toLocaleString('pt-BR', { month: 'long' })}/${ano}
 

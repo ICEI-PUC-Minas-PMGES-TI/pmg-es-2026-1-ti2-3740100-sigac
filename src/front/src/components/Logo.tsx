@@ -18,7 +18,7 @@ export function Logo(props: SVGProps<SVGSVGElement>) {
         <rect x="4" y="40" width="28" height="4" rx="1" />
         <path d="M14 24h4v4h-4v-4zm6 0h4v4h-4v-4zm-6 8h4v4h-4v-4zm6 0h4v4h-4v-4z" opacity="0.7" />
       </g>
-      <text x="44" y="32" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="700" fontSize="24" fill="currentColor" letterSpacing="0.02em">
+      <text x="44" y="32" fontFamily="Arial, Helvetica, sans-serif" fontWeight="700" fontSize="24" fill="currentColor" letterSpacing="0.02em">
         SIGAC
       </text>
     </svg>

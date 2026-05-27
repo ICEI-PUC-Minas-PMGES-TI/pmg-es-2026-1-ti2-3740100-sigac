@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body,
+input,
+textarea,
+select,
+button {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
 :root {
   --sigac-nav: #1b3266;
   --sigac-accent: #2f6ce6;
@@ -11,7 +20,7 @@
 }
 
 body {
-  @apply text-slate-800 antialiased;
+  @apply font-sans text-slate-800 antialiased;
   background: linear-gradient(165deg, #f8fafc 0%, #eef2ff 30%, #f1f5f9 70%, #f0f9ff 100%);
   min-height: 100vh;
   background-attachment: fixed;
