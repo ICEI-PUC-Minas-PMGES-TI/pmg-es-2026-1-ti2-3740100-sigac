@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api, CondominioDTO, SolicitacaoManutencaoContagemDTO } from '@/lib/api';
+import { resolveCondominioIdForNav } from '@/lib/condominio-scope';
 import { Logo } from '@/components/Logo';
 import { IconBanknote, IconDashboard, IconBuilding, IconUser, IconUsers, IconWallet, IconWrench, IconLogout, IconBell } from '@/components/Icons';
 
@@ -16,6 +17,7 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
   const condominioId = searchParams.get('condominioId');
   const [condominios, setCondominios] = useState<CondominioDTO[]>([]);
   const [currentCond, setCurrentCond] = useState<CondominioDTO | null>(null);
+  const [condominiosError, setCondominiosError] = useState('');
   const [solicManutencaoCount, setSolicManutencaoCount] = useState(0);
 
   useEffect(() => {
@@ -24,21 +26,39 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     if (!user) return;
-    api<CondominioDTO[]>('/condominios').then((list) => {
-      setCondominios(list);
-      const id = condominioId ? Number(condominioId) : list[0]?.id;
-      if (id) setCurrentCond(list.find((c) => c.id === id) ?? list[0] ?? null);
-      else setCurrentCond(list[0] ?? null);
-    });
+    api<CondominioDTO[]>('/condominios')
+      .then((list) => {
+        setCondominiosError('');
+        setCondominios(list);
+        const id = condominioId ? Number(condominioId) : list[0]?.id;
+        if (id) setCurrentCond(list.find((c) => c.id === id) ?? list[0] ?? null);
+        else setCurrentCond(list[0] ?? null);
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : '';
+        if (msg.includes('Sessão expirada')) {
+          logout();
+          router.replace('/');
+        } else if (msg) {
+          setCondominiosError(msg);
+          setCondominios([]);
+          setCurrentCond(null);
+        }
+      });
   }, [user, condominioId]);
 
-  useEffect(() => {
-    if (currentCond && !condominioId) router.replace(`/gestor?condominioId=${currentCond.id}`);
-  }, [currentCond, condominioId, router]);
+  const resolvedCondId = useMemo(
+    () => resolveCondominioIdForNav(condominios, condominioId, user?.condominioIds),
+    [condominios, condominioId, user?.condominioIds]
+  );
 
   useEffect(() => {
-    if (!user || !currentCond?.id) return;
-    const id = currentCond.id;
+    if (resolvedCondId && !condominioId) router.replace(`/gestor?condominioId=${resolvedCondId}`);
+  }, [resolvedCondId, condominioId, router]);
+
+  useEffect(() => {
+    if (!user || !resolvedCondId) return;
+    const id = resolvedCondId;
     let cancelled = false;
     const fetchCount = () => {
       api<SolicitacaoManutencaoContagemDTO>(`/condominios/${id}/solicitacoes-manutencao/contagem`)
@@ -58,7 +78,7 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
       clearInterval(interval);
       window.removeEventListener('sigac-solic-manutencao-changed', onSolicChange);
     };
-  }, [user, currentCond?.id]);
+  }, [user, resolvedCondId]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-sigac-bg">
@@ -70,7 +90,13 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
   );
   if (!user || !isGestor) return null;
 
-  const cid = currentCond?.id ?? '';
+  const cidNum = resolvedCondId;
+  const cid = cidNum != null ? String(cidNum) : '';
+
+  const headerCondo =
+    condominios.find((c) => c.id === cidNum)
+    ?? currentCond
+    ?? (cidNum != null ? ({ id: cidNum, nome: `Condomínio #${cidNum}` } satisfies CondominioDTO) : null);
   const navLinks = [
     { href: `/gestor?condominioId=${cid}`, label: 'Dashboard', active: pathname === '/gestor', icon: IconDashboard, badge: 0 },
     { href: `/gestor/funcionarios?condominioId=${cid}`, label: 'Funcionários', active: pathname.startsWith('/gestor/funcionarios'), icon: IconUser, badge: 0 },
@@ -138,9 +164,9 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
             <Logo className="h-8 w-auto" />
           </Link>
           <div className="flex-1 flex justify-center min-w-0">
-            {currentCond && (
-              <span className="text-base font-semibold text-sigac-nav bg-sigac-nav/10 px-4 py-1.5 rounded-lg truncate max-w-[280px]" title={currentCond.nome}>
-                {currentCond.nome}
+            {headerCondo && (
+              <span className="text-base font-semibold text-sigac-nav bg-sigac-nav/10 px-4 py-1.5 rounded-lg truncate max-w-[280px]" title={headerCondo.nome}>
+                {headerCondo.nome}
               </span>
             )}
           </div>
@@ -150,6 +176,11 @@ export default function GestorLayout({ children }: { children: React.ReactNode }
             </Link>
           </div>
         </header>
+        {condominiosError && (
+          <div className="shrink-0 bg-rose-50 border-b border-rose-200 px-6 py-2.5 text-sm text-rose-900">
+            {condominiosError} — usando o condomínio do seu vínculo. Se o problema continuar, saia e entre de novo.
+          </div>
+        )}
         {solicManutencaoCount > 0 && (
           <div className="shrink-0 bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-sm text-amber-950">
             <p>

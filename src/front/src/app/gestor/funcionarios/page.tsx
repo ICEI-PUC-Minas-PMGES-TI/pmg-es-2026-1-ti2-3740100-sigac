@@ -9,13 +9,17 @@ import { TableSkeleton } from '@/components/LoadingSpinner';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import { FormModal } from '@/components/FormModal';
 
+function normalizeDigits(value: string) {
+  return value.replace(/\D/g, '');
+}
+
 export default function FuncionariosPage() {
   const searchParams = useSearchParams();
   const condominioId = searchParams.get('condominioId');
   const [list, setList] = useState<FuncionarioDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' });
+  const [form, setForm] = useState({ nome: '', email: '', cpf: '', telefone: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' });
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -23,7 +27,14 @@ export default function FuncionariosPage() {
 
   const load = () => {
     if (!condominioId) return;
-    api<FuncionarioDTO[]>(`/condominios/${condominioId}/funcionarios`).then(setList).finally(() => setLoading(false));
+    setError('');
+    api<FuncionarioDTO[]>(`/condominios/${condominioId}/funcionarios`)
+      .then(setList)
+      .catch((err: unknown) => {
+        setList([]);
+        setError(err instanceof Error ? err.message : 'Erro ao carregar funcionários');
+      })
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -41,7 +52,15 @@ export default function FuncionariosPage() {
     }
     setError('');
     try {
-      const payload = { nome: form.nome, funcao: funcaoEnviar, valorMensal: Number(form.valorMensal), condominioId: Number(condominioId) };
+      const payload = {
+        nome: form.nome.trim(),
+        funcao: funcaoEnviar.trim(),
+        email: form.email.trim(),
+        cpf: normalizeDigits(form.cpf),
+        telefone: form.telefone.trim() ? normalizeDigits(form.telefone) : undefined,
+        valorMensal: Number(form.valorMensal),
+        condominioId: Number(condominioId),
+      };
       if (editingId) {
         await api(`/condominios/${condominioId}/funcionarios/${editingId}`, {
           method: 'PUT',
@@ -54,7 +73,7 @@ export default function FuncionariosPage() {
           body: JSON.stringify(payload),
         });
       }
-      setForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' });
+      setForm({ nome: '', email: '', cpf: '', telefone: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' });
       setShowForm(false);
       load();
     } catch (err: unknown) {
@@ -85,6 +104,9 @@ export default function FuncionariosPage() {
     const ehOutro = funcoes.indexOf(funcao) < 0;
     setForm({
       nome: f?.nome ?? '',
+      email: f?.email ?? '',
+      cpf: f?.cpf ?? '',
+      telefone: f?.telefone ?? '',
       funcao: ehOutro ? 'Outro' : funcao,
       funcaoOutro: ehOutro ? funcao : '',
       valorMensal: f != null ? String(f.valorMensal) : '',
@@ -131,12 +153,36 @@ export default function FuncionariosPage() {
 
       <FormModal
         open={showForm}
-        onClose={() => { setShowForm(false); setEditingId(null); setForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' }); }}
+        onClose={() => { setShowForm(false); setEditingId(null); setForm({ nome: '', email: '', cpf: '', telefone: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' }); }}
         title={editingId ? 'Editar funcionário' : 'Novo funcionário'}
         icon={<UserPlus className="w-5 h-5 text-sigac-accent" />}
       >
         <form onSubmit={handleSubmit} className="space-y-3">
           <input className="input" placeholder="Nome" value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} required />
+          <input type="email" className="input" placeholder="E-mail" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required />
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-slate-500 block mb-1">CPF</label>
+              <input
+                className="input"
+                placeholder="Somente números"
+                value={form.cpf}
+                onChange={(e) => setForm((f) => ({ ...f, cpf: e.target.value }))}
+                inputMode="numeric"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 block mb-1">Telefone (opcional)</label>
+              <input
+                className="input"
+                placeholder="DDD + número"
+                value={form.telefone}
+                onChange={(e) => setForm((f) => ({ ...f, telefone: e.target.value }))}
+                inputMode="tel"
+              />
+            </div>
+          </div>
           <select className="input" value={form.funcao} onChange={(e) => setForm((prev) => ({ ...prev, funcao: e.target.value, funcaoOutro: e.target.value === 'Outro' ? prev.funcaoOutro : '' }))}>
             {funcoes.map((f) => <option key={f} value={f}>{f}</option>)}
           </select>
@@ -151,7 +197,7 @@ export default function FuncionariosPage() {
           <input type="number" step="0.01" min="0" className="input" placeholder="Valor mensal (R$)" value={form.valorMensal} onChange={(e) => setForm((f) => ({ ...f, valorMensal: e.target.value }))} required />
           <div className="flex gap-2 pt-2">
             <button type="submit" className="btn-primary">{editingId ? 'Salvar' : 'Cadastrar'}</button>
-            <button type="button" className="btn-secondary" onClick={() => { setShowForm(false); setEditingId(null); setForm({ nome: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' }); }}>Cancelar</button>
+            <button type="button" className="btn-secondary" onClick={() => { setShowForm(false); setEditingId(null); setForm({ nome: '', email: '', cpf: '', telefone: '', funcao: 'Porteiro', funcaoOutro: '', valorMensal: '' }); }}>Cancelar</button>
           </div>
         </form>
       </FormModal>
@@ -167,7 +213,9 @@ export default function FuncionariosPage() {
             <thead>
               <tr className="bg-gradient-to-r from-sigac-accent/10 to-sigac-accent/5 text-sigac-nav border-b border-slate-200">
                 <th className="text-left p-3 font-semibold rounded-tl-2xl">Nome</th>
+                <th className="text-left p-3 font-semibold">CPF</th>
                 <th className="text-left p-3 font-semibold">Função</th>
+                <th className="text-left p-3 font-semibold">Telefone</th>
                 <th className="text-right p-3 font-semibold">Valor mensal</th>
                 <th className="w-28 p-3 font-semibold rounded-tr-2xl text-right">Ações</th>
               </tr>
@@ -182,7 +230,9 @@ export default function FuncionariosPage() {
                   className={`border-b border-slate-100 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-sigac-accent/5`}
                 >
                   <td className="p-3 font-medium text-slate-800">{f.nome}</td>
+                  <td className="p-3 text-slate-600">{f.cpf}</td>
                   <td className="p-3 text-slate-600">{f.funcao}</td>
+                  <td className="p-3 text-slate-600">{f.telefone || '—'}</td>
                   <td className="p-3 text-right font-medium text-sigac-nav">R$ {Number(f.valorMensal).toFixed(2).replace('.', ',')}</td>
                   <td className="p-2">
                     <div className="flex items-center justify-end gap-1">

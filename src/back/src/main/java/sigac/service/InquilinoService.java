@@ -30,8 +30,10 @@ public class InquilinoService {
         if (!acessoService.podeEditarCondominio(condominioId)) throw new ForbiddenException("Sem permissão");
         var condominio = condominioRepository.findById(condominioId).orElseThrow(() -> new NotFoundException("Condomínio não encontrado"));
         Inquilino i = new Inquilino();
-        i.setNome(dto.getNome());
-        i.setEmail(dto.getEmail());
+        i.setNome(dto.getNome().trim());
+        i.setEmail(dto.getEmail().trim());
+        i.setAndar(dto.getAndar().trim());
+        i.setApartamento(dto.getApartamento().trim());
         i.setCondominio(condominio);
         i = inquilinoRepository.save(i);
         dto.setId(i.getId());
@@ -49,8 +51,10 @@ public class InquilinoService {
     public InquilinoDTO atualizar(Long id, InquilinoDTO dto) {
         Inquilino i = inquilinoRepository.findById(id).orElseThrow(() -> new NotFoundException("Inquilino não encontrado"));
         if (!acessoService.podeEditarCondominio(i.getCondominio().getId())) throw new ForbiddenException("Sem permissão");
-        i.setNome(dto.getNome());
-        i.setEmail(dto.getEmail());
+        i.setNome(dto.getNome().trim());
+        i.setEmail(dto.getEmail().trim());
+        i.setAndar(dto.getAndar().trim());
+        i.setApartamento(dto.getApartamento().trim());
         i = inquilinoRepository.save(i);
         return toDTO(i);
     }
@@ -67,6 +71,8 @@ public class InquilinoService {
         dto.setId(i.getId());
         dto.setNome(i.getNome());
         dto.setEmail(i.getEmail());
+        dto.setAndar(i.getAndar());
+        dto.setApartamento(i.getApartamento());
         dto.setCondominioId(i.getCondominio().getId());
         return dto;
     }

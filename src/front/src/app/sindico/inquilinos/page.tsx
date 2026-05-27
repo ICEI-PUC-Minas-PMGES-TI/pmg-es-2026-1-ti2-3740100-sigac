@@ -7,6 +7,15 @@ import { Users } from 'lucide-react';
 import { api, InquilinoDTO } from '@/lib/api';
 import { TableSkeleton } from '@/components/LoadingSpinner';
 
+function formatoUnidade(i: Pick<InquilinoDTO, 'andar' | 'apartamento'>): string {
+  const a = i.andar?.trim();
+  const ap = i.apartamento?.trim();
+  const partes: string[] = [];
+  if (a) partes.push(`Andar ${a}`);
+  if (ap) partes.push(`Apt ${ap}`);
+  return partes.length > 0 ? partes.join(' · ') : '—';
+}
+
 export default function SindicoInquilinosPage() {
   const searchParams = useSearchParams();
   const condominioId = searchParams.get('condominioId');
@@ -33,6 +42,7 @@ export default function SindicoInquilinosPage() {
             <thead>
               <tr className="bg-gradient-to-r from-sigac-accent/10 to-sigac-accent/5 text-sigac-nav border-b border-slate-200">
                 <th className="text-left p-3 font-semibold rounded-tl-2xl">Nome</th>
+                <th className="text-left p-3 font-semibold">Unidade</th>
                 <th className="text-left p-3 font-semibold rounded-tr-2xl">E-mail</th>
               </tr>
             </thead>
@@ -46,6 +56,7 @@ export default function SindicoInquilinosPage() {
                   className={`border-b border-slate-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-sigac-accent/5 transition-colors`}
                 >
                   <td className="p-3 font-medium text-slate-800">{i.nome}</td>
+                  <td className="p-3 text-slate-600">{formatoUnidade(i)}</td>
                   <td className="p-3 text-slate-600">{i.email}</td>
                 </motion.tr>
               ))}

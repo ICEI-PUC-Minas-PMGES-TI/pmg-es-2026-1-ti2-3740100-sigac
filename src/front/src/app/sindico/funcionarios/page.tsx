@@ -12,10 +12,18 @@ export default function SindicoFuncionariosPage() {
   const condominioId = searchParams.get('condominioId');
   const [list, setList] = useState<FuncionarioDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!condominioId) return;
-    api<FuncionarioDTO[]>(`/condominios/${condominioId}/funcionarios`).then(setList).finally(() => setLoading(false));
+    setError('');
+    api<FuncionarioDTO[]>(`/condominios/${condominioId}/funcionarios`)
+      .then(setList)
+      .catch((err: unknown) => {
+        setList([]);
+        setError(err instanceof Error ? err.message : 'Erro ao carregar funcionários');
+      })
+      .finally(() => setLoading(false));
   }, [condominioId]);
 
   if (!condominioId) return <div className="card">Selecione um condomínio.</div>;
@@ -27,13 +35,16 @@ export default function SindicoFuncionariosPage() {
         <Users className="w-8 h-8 text-sigac-accent" />
         Funcionários (visualização)
       </h1>
+      {error && <div className="toast-error">{error}</div>}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="card overflow-hidden p-0 rounded-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gradient-to-r from-sigac-accent/10 to-sigac-accent/5 text-sigac-nav border-b border-slate-200">
                 <th className="text-left p-3 font-semibold rounded-tl-2xl">Nome</th>
+                <th className="text-left p-3 font-semibold">CPF</th>
                 <th className="text-left p-3 font-semibold">Função</th>
+                <th className="text-left p-3 font-semibold">Telefone</th>
                 <th className="text-right p-3 font-semibold rounded-tr-2xl">Valor mensal</th>
               </tr>
             </thead>
@@ -47,7 +58,9 @@ export default function SindicoFuncionariosPage() {
                   className={`border-b border-slate-100 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-sigac-accent/5 transition-colors`}
                 >
                   <td className="p-3 font-medium text-slate-800">{f.nome}</td>
+                  <td className="p-3 text-slate-600">{f.cpf}</td>
                   <td className="p-3 text-slate-600">{f.funcao}</td>
+                  <td className="p-3 text-slate-600">{f.telefone || '—'}</td>
                   <td className="p-3 text-right font-medium text-sigac-nav">R$ {Number(f.valorMensal).toFixed(2).replace('.', ',')}</td>
                 </motion.tr>
               ))}

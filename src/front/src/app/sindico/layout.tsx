@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api, CondominioDTO } from '@/lib/api';
+import { resolveCondominioIdForNav } from '@/lib/condominio-scope';
 import { Logo } from '@/components/Logo';
 import { IconBanknote, IconDashboard, IconUser, IconUsers, IconWallet, IconWrench, IconLogout, IconBell } from '@/components/Icons';
 
@@ -16,6 +17,7 @@ export default function SindicoLayout({ children }: { children: React.ReactNode 
   const condominioId = searchParams.get('condominioId');
   const [condominios, setCondominios] = useState<CondominioDTO[]>([]);
   const [currentCond, setCurrentCond] = useState<CondominioDTO | null>(null);
+  const [condominiosError, setCondominiosError] = useState('');
 
   useEffect(() => {
     if (!loading && !isSindico) router.replace('/');
@@ -23,17 +25,35 @@ export default function SindicoLayout({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     if (!user) return;
-    api<CondominioDTO[]>('/condominios').then((list) => {
-      setCondominios(list);
-      const id = condominioId ? Number(condominioId) : list[0]?.id;
-      if (id) setCurrentCond(list.find((c) => c.id === id) ?? list[0] ?? null);
-      else setCurrentCond(list[0] ?? null);
-    });
+    api<CondominioDTO[]>('/condominios')
+      .then((list) => {
+        setCondominiosError('');
+        setCondominios(list);
+        const id = condominioId ? Number(condominioId) : list[0]?.id;
+        if (id) setCurrentCond(list.find((c) => c.id === id) ?? list[0] ?? null);
+        else setCurrentCond(list[0] ?? null);
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : '';
+        if (msg.includes('Sessão expirada')) {
+          logout();
+          router.replace('/');
+        } else if (msg) {
+          setCondominiosError(msg);
+          setCondominios([]);
+          setCurrentCond(null);
+        }
+      });
   }, [user, condominioId]);
 
+  const resolvedCondId = useMemo(
+    () => resolveCondominioIdForNav(condominios, condominioId, user?.condominioIds),
+    [condominios, condominioId, user?.condominioIds]
+  );
+
   useEffect(() => {
-    if (currentCond && !condominioId) router.replace(`/sindico?condominioId=${currentCond.id}`);
-  }, [currentCond, condominioId, router]);
+    if (resolvedCondId && !condominioId) router.replace(`/sindico?condominioId=${resolvedCondId}`);
+  }, [resolvedCondId, condominioId, router]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-sigac-bg">
@@ -45,7 +65,14 @@ export default function SindicoLayout({ children }: { children: React.ReactNode 
   );
   if (!user || !isSindico) return null;
 
-  const cid = currentCond?.id ?? '';
+  const cidNum = resolvedCondId;
+  const cid = cidNum != null ? String(cidNum) : '';
+
+  const headerCondo =
+    condominios.find((c) => c.id === cidNum)
+    ?? currentCond
+    ?? (cidNum != null ? ({ id: cidNum, nome: `Condomínio #${cidNum}` } satisfies CondominioDTO) : null);
+
   const navLinks = [
     { href: `/sindico?condominioId=${cid}`, label: 'Dashboard', active: pathname === '/sindico', icon: IconDashboard },
     { href: `/sindico/funcionarios?condominioId=${cid}`, label: 'Funcionários', active: pathname.startsWith('/sindico/funcionarios'), icon: IconUser },
@@ -109,9 +136,9 @@ export default function SindicoLayout({ children }: { children: React.ReactNode 
             <Logo className="h-8 w-auto" />
           </Link>
           <div className="flex-1 flex justify-center min-w-0">
-            {currentCond && (
-              <span className="text-base font-semibold text-sigac-nav bg-sigac-nav/10 px-4 py-1.5 rounded-lg truncate max-w-[280px]" title={currentCond.nome}>
-                {currentCond.nome}
+            {headerCondo && (
+              <span className="text-base font-semibold text-sigac-nav bg-sigac-nav/10 px-4 py-1.5 rounded-lg truncate max-w-[280px]" title={headerCondo.nome}>
+                {headerCondo.nome}
               </span>
             )}
           </div>
@@ -121,6 +148,11 @@ export default function SindicoLayout({ children }: { children: React.ReactNode 
             </Link>
           </div>
         </header>
+        {condominiosError && (
+          <div className="shrink-0 bg-rose-50 border-b border-rose-200 px-6 py-2.5 text-sm text-rose-900">
+            {condominiosError} — usando o condomínio do seu vínculo. Se persistir, saia e entre de novo.
+          </div>
+        )}
         <main className="flex-1 overflow-auto p-6 main-internal-bg">
           <img src="/img/fundo.png" alt="" className="main-internal-bg-img" aria-hidden />
           <div className="main-internal-bg-overlay" />

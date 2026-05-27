@@ -30,8 +30,11 @@ public class FuncionarioService {
         if (!acessoService.podeEditarCondominio(condominioId)) throw new ForbiddenException("Sem permissão");
         var condominio = condominioRepository.findById(condominioId).orElseThrow(() -> new NotFoundException("Condomínio não encontrado"));
         Funcionario f = new Funcionario();
-        f.setNome(dto.getNome());
-        f.setFuncao(dto.getFuncao());
+        f.setNome(dto.getNome().trim());
+        f.setFuncao(dto.getFuncao().trim());
+        f.setEmail(dto.getEmail().trim());
+        f.setCpf(normalizeCpf(dto.getCpf()));
+        f.setTelefone(normalizeTelefone(dto.getTelefone()));
         f.setValorMensal(dto.getValorMensal());
         f.setCondominio(condominio);
         f = funcionarioRepository.save(f);
@@ -57,8 +60,11 @@ public class FuncionarioService {
     public FuncionarioDTO atualizar(Long id, FuncionarioDTO dto) {
         Funcionario f = funcionarioRepository.findById(id).orElseThrow(() -> new NotFoundException("Funcionário não encontrado"));
         if (!acessoService.podeEditarCondominio(f.getCondominio().getId())) throw new ForbiddenException("Sem permissão");
-        f.setNome(dto.getNome());
-        f.setFuncao(dto.getFuncao());
+        f.setNome(dto.getNome().trim());
+        f.setFuncao(dto.getFuncao().trim());
+        f.setEmail(dto.getEmail().trim());
+        f.setCpf(normalizeCpf(dto.getCpf()));
+        f.setTelefone(normalizeTelefone(dto.getTelefone()));
         f.setValorMensal(dto.getValorMensal());
         f = funcionarioRepository.save(f);
         return toDTO(f);
@@ -76,8 +82,23 @@ public class FuncionarioService {
         dto.setId(f.getId());
         dto.setNome(f.getNome());
         dto.setFuncao(f.getFuncao());
+        dto.setEmail(f.getEmail());
+        dto.setCpf(f.getCpf());
+        dto.setTelefone(f.getTelefone());
         dto.setValorMensal(f.getValorMensal());
         dto.setCondominioId(f.getCondominio().getId());
         return dto;
+    }
+
+    static String normalizeCpf(String raw) {
+        if (raw == null) return null;
+        String digits = raw.replaceAll("\\D", "");
+        return digits.isBlank() ? null : digits;
+    }
+
+    static String normalizeTelefone(String raw) {
+        if (raw == null) return null;
+        String digits = raw.replaceAll("\\D", "");
+        return digits.isBlank() ? null : digits;
     }
 }

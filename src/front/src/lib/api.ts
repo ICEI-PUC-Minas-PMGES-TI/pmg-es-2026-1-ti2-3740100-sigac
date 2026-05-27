@@ -5,6 +5,14 @@ function getToken(): string | null {
   return localStorage.getItem('sigac_token');
 }
 
+function clearAuthAndRedirect() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('sigac_token');
+  localStorage.removeItem('sigac_user');
+  // força voltar pro login sem depender do layout atual
+  if (window.location.pathname !== '/') window.location.href = '/';
+}
+
 export async function api<T>(
   path: string,
   options: RequestInit = {}
@@ -22,8 +30,13 @@ export async function api<T>(
     const msg = data?.message;
     // Mensagens claras para o usuário (evitar "Forbidden", "Unauthorized", etc.)
     if (msg && !/forbidden|unauthorized/i.test(msg)) throw new Error(msg);
-    if (res.status === 401) throw new Error('Sessão expirada ou acesso negado. Faça login novamente.');
-    if (res.status === 403) throw new Error('Você não tem permissão para esta ação.');
+    if (res.status === 401) {
+      clearAuthAndRedirect();
+      throw new Error('Sessão expirada. Faça login novamente.');
+    }
+    if (res.status === 403) {
+      throw new Error('Você não tem permissão para esta ação.');
+    }
     if (res.status === 404) throw new Error('Registro não encontrado.');
     if (res.status >= 500) throw new Error('Erro no servidor. Tente novamente em alguns instantes.');
     throw new Error('Algo deu errado. Tente novamente.');
@@ -46,8 +59,13 @@ export async function apiFormData<T = { message: string }>(
   if (!res.ok) {
     const msg = data?.message;
     if (msg && !/forbidden|unauthorized/i.test(msg)) throw new Error(msg);
-    if (res.status === 401) throw new Error('Sessão expirada ou acesso negado. Faça login novamente.');
-    if (res.status === 403) throw new Error('Você não tem permissão para esta ação.');
+    if (res.status === 401) {
+      clearAuthAndRedirect();
+      throw new Error('Sessão expirada. Faça login novamente.');
+    }
+    if (res.status === 403) {
+      throw new Error('Você não tem permissão para esta ação.');
+    }
     if (res.status === 404) throw new Error('Registro não encontrado.');
     if (res.status >= 500) throw new Error(msg || 'Erro no servidor. Tente novamente em alguns instantes.');
     throw new Error(msg || 'Algo deu errado. Tente novamente.');
@@ -77,6 +95,9 @@ export interface FuncionarioDTO {
   id: number;
   nome: string;
   funcao: string;
+  email: string;
+  cpf: string;
+  telefone?: string;
   valorMensal: number;
   condominioId: number;
 }
@@ -85,6 +106,9 @@ export interface InquilinoDTO {
   id: number;
   nome: string;
   email: string;
+  /** Ex.: "3", "Térreo" */
+  andar?: string;
+  apartamento?: string;
   condominioId: number;
 }
 

@@ -9,13 +9,22 @@ import { TableSkeleton } from '@/components/LoadingSpinner';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import { FormModal } from '@/components/FormModal';
 
+function formatoUnidade(i: Pick<InquilinoDTO, 'andar' | 'apartamento'>): string {
+  const a = i.andar?.trim();
+  const ap = i.apartamento?.trim();
+  const partes: string[] = [];
+  if (a) partes.push(`Andar ${a}`);
+  if (ap) partes.push(`Apt ${ap}`);
+  return partes.length > 0 ? partes.join(' · ') : '—';
+}
+
 export default function InquilinosPage() {
   const searchParams = useSearchParams();
   const condominioId = searchParams.get('condominioId');
   const [list, setList] = useState<InquilinoDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ nome: '', email: '' });
+  const [form, setForm] = useState({ nome: '', email: '', andar: '', apartamento: '' });
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -38,16 +47,28 @@ export default function InquilinosPage() {
       if (editingId) {
         await api(`/condominios/${condominioId}/inquilinos/${editingId}`, {
           method: 'PUT',
-          body: JSON.stringify({ ...form, condominioId: Number(condominioId) }),
+          body: JSON.stringify({
+            nome: form.nome.trim(),
+            email: form.email.trim(),
+            andar: form.andar.trim(),
+            apartamento: form.apartamento.trim(),
+            condominioId: Number(condominioId),
+          }),
         });
         setEditingId(null);
       } else {
         await api(`/condominios/${condominioId}/inquilinos`, {
           method: 'POST',
-          body: JSON.stringify({ ...form, condominioId: Number(condominioId) }),
+          body: JSON.stringify({
+            nome: form.nome.trim(),
+            email: form.email.trim(),
+            andar: form.andar.trim(),
+            apartamento: form.apartamento.trim(),
+            condominioId: Number(condominioId),
+          }),
         });
       }
-      setForm({ nome: '', email: '' });
+      setForm({ nome: '', email: '', andar: '', apartamento: '' });
       setShowForm(false);
       load();
     } catch (err: unknown) {
@@ -88,7 +109,7 @@ export default function InquilinosPage() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => { setShowForm(true); setEditingId(null); setForm({ nome: '', email: '' }); }}
+          onClick={() => { setShowForm(true); setEditingId(null); setForm({ nome: '', email: '', andar: '', apartamento: '' }); }}
           className="btn-primary flex items-center gap-2"
         >
           <UserPlus className="w-5 h-5" />
@@ -118,6 +139,16 @@ export default function InquilinosPage() {
         <form onSubmit={handleSubmit} className="space-y-3">
           <input className="input" placeholder="Nome" value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} required />
           <input type="email" className="input" placeholder="E-mail" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required />
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-slate-500 block mb-1">Andar</label>
+              <input className="input" placeholder="Ex.: 3, Térreo" value={form.andar} onChange={(e) => setForm((f) => ({ ...f, andar: e.target.value }))} required />
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 block mb-1">Apartamento</label>
+              <input className="input" placeholder="Ex.: 101" value={form.apartamento} onChange={(e) => setForm((f) => ({ ...f, apartamento: e.target.value }))} required />
+            </div>
+          </div>
           <div className="flex gap-2 pt-2">
             <button type="submit" className="btn-primary">{editingId ? 'Salvar' : 'Cadastrar'}</button>
             <button type="button" className="btn-secondary" onClick={() => { setShowForm(false); setEditingId(null); }}>Cancelar</button>
@@ -131,6 +162,7 @@ export default function InquilinosPage() {
             <thead>
               <tr className="bg-gradient-to-r from-sigac-accent/10 to-sigac-accent/5 text-sigac-nav border-b border-slate-200">
                 <th className="text-left p-3 font-semibold rounded-tl-2xl">Nome</th>
+                <th className="text-left p-3 font-semibold">Unidade</th>
                 <th className="text-left p-3 font-semibold">E-mail</th>
                 <th className="w-28 p-3 font-semibold rounded-tr-2xl text-right">Ações</th>
               </tr>
@@ -145,10 +177,11 @@ export default function InquilinosPage() {
                   className={`border-b border-slate-100 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-sigac-accent/5`}
                 >
                   <td className="p-3 font-medium text-slate-800">{i.nome}</td>
+                  <td className="p-3 text-slate-600">{formatoUnidade(i)}</td>
                   <td className="p-3 text-slate-600">{i.email}</td>
                   <td className="p-2">
                     <div className="flex items-center justify-end gap-1">
-                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors" onClick={() => { setForm({ nome: i.nome, email: i.email }); setEditingId(i.id); setShowForm(true); }} title="Editar" aria-label="Editar">
+                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" className="p-2 rounded-lg text-sigac-nav hover:bg-sigac-accent/10 hover:text-sigac-accent transition-colors" onClick={() => { setForm({ nome: i.nome, email: i.email, andar: i.andar ?? '', apartamento: i.apartamento ?? '' }); setEditingId(i.id); setShowForm(true); }} title="Editar" aria-label="Editar">
                         <Pencil className="w-5 h-5" />
                       </motion.button>
                       <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors" onClick={() => setDeletingId(i.id)} title="Remover" aria-label="Remover">

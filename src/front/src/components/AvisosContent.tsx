@@ -35,6 +35,15 @@ function renderDestinatarios(aviso: AvisoDTO) {
   return `${aviso.destinatarios[0]?.nome}, ${aviso.destinatarios[1]?.nome} +${aviso.destinatarios.length - 2}`;
 }
 
+function formatoUnidadeInquilino(i: Pick<InquilinoDTO, 'andar' | 'apartamento'>): string {
+  const a = i.andar?.trim();
+  const ap = i.apartamento?.trim();
+  const partes: string[] = [];
+  if (a) partes.push(`Andar ${a}`);
+  if (ap) partes.push(`Apt ${ap}`);
+  return partes.length > 0 ? partes.join(' · ') : '';
+}
+
 export function AvisosContent({ readOnly = false }: AvisosContentProps) {
   const searchParams = useSearchParams();
   const condominioId = searchParams.get('condominioId');
@@ -294,7 +303,9 @@ export function AvisosContent({ readOnly = false }: AvisosContentProps) {
                       />
                       <span className="min-w-0">
                         <span className="block text-sm font-medium text-slate-800">{inquilino.nome}</span>
-                        <span className="block text-xs text-slate-500">{inquilino.email}</span>
+                        <span className="block text-xs text-slate-500">
+                          {[formatoUnidadeInquilino(inquilino), inquilino.email].filter(Boolean).join(' · ')}
+                        </span>
                       </span>
                     </label>
                   ))}
