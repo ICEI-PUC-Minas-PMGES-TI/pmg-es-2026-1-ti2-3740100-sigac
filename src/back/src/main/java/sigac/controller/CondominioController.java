@@ -42,6 +42,12 @@ public class CondominioController {
         return condominioService.atualizar(id, dto);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        condominioService.excluir(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{id}/gestores")
     public ResponseEntity<UserDTO> criarGestor(@PathVariable Long id, @Valid @RequestBody CreateUserRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(condominioService.criarGestor(id, request));

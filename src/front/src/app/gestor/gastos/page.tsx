@@ -19,8 +19,8 @@ export default function GastosPage() {
   const [gastos, setGastos] = useState<GastoProdutoDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const dataAtual = useMemo(() => new Date(), []);
-  const [anoFiltro, setAnoFiltro] = useState<number | 'todos'>(dataAtual.getFullYear());
-  const [mesFiltro, setMesFiltro] = useState<number | 'todos'>(dataAtual.getMonth() + 1);
+  const [anoFiltro, setAnoFiltro] = useState<number | 'todos'>('todos');
+  const [mesFiltro, setMesFiltro] = useState<number | 'todos'>('todos');
   const [showForm, setShowForm] = useState(false);
   const [gastoForm, setGastoForm] = useState({
     descricao: '',

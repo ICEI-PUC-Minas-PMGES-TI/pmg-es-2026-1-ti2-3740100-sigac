@@ -88,7 +88,15 @@ export interface CondominioDTO {
   id: number;
   nome: string;
   endereco?: string;
+  enderecoCompleto?: string;
   cnpj?: string;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
 }
 
 export interface FuncionarioDTO {

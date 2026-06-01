@@ -26,8 +26,8 @@ export default function ManutencoesPage() {
   const [solicitacoes, setSolicitacoes] = useState<SolicitacaoManutencaoDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const now = useMemo(() => new Date(), []);
-  const [anoFiltro, setAnoFiltro] = useState<number | 'todos'>(now.getFullYear());
-  const [mesFiltro, setMesFiltro] = useState<number | 'todos'>(now.getMonth() + 1);
+  const [anoFiltro, setAnoFiltro] = useState<number | 'todos'>('todos');
+  const [mesFiltro, setMesFiltro] = useState<number | 'todos'>('todos');
   const [showForm, setShowForm] = useState(false);
   const [solicitacaoPendenteId, setSolicitacaoPendenteId] = useState<number | null>(null);
   const [form, setForm] = useState({

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,14 +58,9 @@ public class CondominioService {
 
     @Transactional
     public CondominioDTO criarCondominio(CondominioDTO dto) {
-        UserPrincipal principal = CondominioAcessoService.getCurrentUser();
-        if (principal == null || principal.getRole() != Role.SIGAC_ADMIN) {
-            throw new ForbiddenException("Apenas SIGAC Admin pode criar condomínios");
-        }
+        assertAdmin("Apenas SIGAC Admin pode criar condomínios");
         Condominio c = new Condominio();
-        c.setNome(dto.getNome());
-        c.setEndereco(dto.getEndereco());
-        c.setCnpj(normalizeCnpjAlpha(dto.getCnpj()));
+        applyCondominioChanges(c, dto);
         c = condominioRepository.save(c);
         return toDTO(c);
     }
@@ -78,12 +74,34 @@ public class CondominioService {
 
     @Transactional
     public CondominioDTO atualizar(Long id, CondominioDTO dto) {
-        if (!acessoService.podeEditarCondominio(id)) throw new ForbiddenException("Sem permissão para editar");
+        assertAdmin("Apenas SIGAC Admin pode editar condomínios");
         Condominio c = condominioRepository.findById(id).orElseThrow(() -> new NotFoundException("Condomínio não encontrado"));
-        c.setNome(dto.getNome());
-        c.setEndereco(dto.getEndereco());
-        c.setCnpj(normalizeCnpjAlpha(dto.getCnpj()));
+        applyCondominioChanges(c, dto);
         return toDTO(condominioRepository.save(c));
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+        assertAdmin("Apenas SIGAC Admin pode excluir condomínios");
+        Condominio condominio = condominioRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Condomínio não encontrado"));
+
+        List<Long> userIds = gestorCondominioRepository.findByCondominioId(id).stream()
+                .map(g -> g.getUser().getId())
+                .collect(Collectors.toList());
+        userIds.addAll(
+                sindicoCondominioRepository.findByCondominioId(id).stream()
+                        .map(s -> s.getUser().getId())
+                        .collect(Collectors.toList())
+        );
+
+        condominioRepository.delete(condominio);
+        condominioRepository.flush();
+
+        userIds.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .forEach(this::deleteUserIfOrphaned);
     }
 
     /** Cria um usuário com role GESTOR e associa ao condomínio. (SIGAC Admin only) */
@@ -233,7 +251,15 @@ public class CondominioService {
         dto.setId(c.getId());
         dto.setNome(c.getNome());
         dto.setEndereco(c.getEndereco());
+        dto.setEnderecoCompleto(buildEnderecoCompleto(c));
         dto.setCnpj(c.getCnpj());
+        dto.setCep(c.getCep());
+        dto.setLogradouro(c.getLogradouro());
+        dto.setNumero(c.getNumero());
+        dto.setComplemento(c.getComplemento());
+        dto.setBairro(c.getBairro());
+        dto.setCidade(c.getCidade());
+        dto.setUf(c.getUf());
         return dto;
     }
 
@@ -267,5 +293,90 @@ public class CondominioService {
             throw new IllegalArgumentException("CNPJ inválido. Use apenas letras A-Z e números 0-9.");
         }
         return normalized;
+    }
+
+    private void applyCondominioChanges(Condominio condominio, CondominioDTO dto) {
+        condominio.setNome(trimToNull(dto.getNome()));
+        condominio.setCnpj(normalizeCnpjAlpha(dto.getCnpj()));
+        condominio.setCep(normalizeCep(dto.getCep()));
+        condominio.setLogradouro(trimToNull(dto.getLogradouro()));
+        condominio.setNumero(trimToNull(dto.getNumero()));
+        condominio.setComplemento(trimToNull(dto.getComplemento()));
+        condominio.setBairro(trimToNull(dto.getBairro()));
+        condominio.setCidade(trimToNull(dto.getCidade()));
+        condominio.setUf(normalizeUf(dto.getUf()));
+
+        String enderecoInformado = trimToNull(dto.getEndereco());
+        if (enderecoInformado == null) {
+            enderecoInformado = trimToNull(dto.getEnderecoCompleto());
+        }
+        condominio.setEndereco(enderecoInformado != null ? enderecoInformado : buildEnderecoCompleto(condominio));
+    }
+
+    private void deleteUserIfOrphaned(Long userId) {
+        if (userId == null) return;
+        if (!gestorCondominioRepository.findByUserId(userId).isEmpty()) return;
+        if (!sindicoCondominioRepository.findByUserId(userId).isEmpty()) return;
+        userRepository.findById(userId).ifPresent(userRepository::delete);
+    }
+
+    private void assertAdmin(String message) {
+        UserPrincipal principal = CondominioAcessoService.getCurrentUser();
+        if (principal == null || principal.getRole() != Role.SIGAC_ADMIN) {
+            throw new ForbiddenException(message);
+        }
+    }
+
+    private static String trimToNull(String raw) {
+        if (raw == null) return null;
+        String trimmed = raw.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static String normalizeCep(String raw) {
+        String trimmed = trimToNull(raw);
+        if (trimmed == null) return null;
+        String digits = trimmed.replaceAll("\\D", "");
+        if (digits.length() != 8) {
+            throw new IllegalArgumentException("CEP inválido. Informe 8 dígitos.");
+        }
+        return digits;
+    }
+
+    private static String normalizeUf(String raw) {
+        String trimmed = trimToNull(raw);
+        if (trimmed == null) return null;
+        String normalized = trimmed.toUpperCase();
+        if (!normalized.matches("^[A-Z]{2}$")) {
+            throw new IllegalArgumentException("UF inválida. Use a sigla com 2 letras.");
+        }
+        return normalized;
+    }
+
+    private static String buildEnderecoCompleto(Condominio condominio) {
+        return joinNonBlank(
+                joinNonBlank(condominio.getLogradouro(), condominio.getNumero(), ", "),
+                condominio.getComplemento(),
+                " - "
+        ).isBlank()
+                ? joinNonBlank(condominio.getBairro(), joinNonBlank(condominio.getCidade(), condominio.getUf(), "/"), " - ")
+                : joinNonBlank(
+                        joinNonBlank(
+                                joinNonBlank(condominio.getLogradouro(), condominio.getNumero(), ", "),
+                                condominio.getComplemento(),
+                                " - "
+                        ),
+                        joinNonBlank(condominio.getBairro(), joinNonBlank(condominio.getCidade(), condominio.getUf(), "/"), " - "),
+                        " - "
+                );
+    }
+
+    private static String joinNonBlank(String first, String second, String separator) {
+        String left = trimToNull(first);
+        String right = trimToNull(second);
+        if (left == null && right == null) return "";
+        if (left == null) return right;
+        if (right == null) return left;
+        return left + separator + right;
     }
 }
