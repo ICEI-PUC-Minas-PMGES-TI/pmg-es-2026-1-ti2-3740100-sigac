@@ -1,5 +1,6 @@
 package sigac.service;
 
+import sigac.domain.CategoriaManutencao;
 import sigac.domain.Manutencao;
 import sigac.dto.ManutencaoDTO;
 import sigac.exception.ForbiddenException;
@@ -53,6 +54,11 @@ public class ManutencaoService {
         m.setValor(dto.getValor());
         m.setData(dto.getData());
         m.setTipo(dto.getTipo());
+        m.setCategoria(dto.getCategoria() != null
+                ? dto.getCategoria()
+                : solicitacao != null && solicitacao.getCategoria() != null
+                    ? solicitacao.getCategoria()
+                    : CategoriaManutencao.OUTROS);
         m.setPrestador(dto.getPrestador());
         m.setInstrucoesEmail(dto.getInstrucoesEmail());
         m.setCondominio(condominio);
@@ -64,6 +70,7 @@ public class ManutencaoService {
         emailService.enviarNotificacaoManutencao(m, condominio.getNome());
         dto.setId(m.getId());
         dto.setCondominioId(condominioId);
+        dto.setCategoria(m.getCategoria());
         dto.setSolicitacaoId(null);
         return dto;
     }
@@ -89,6 +96,7 @@ public class ManutencaoService {
         m.setValor(dto.getValor());
         m.setData(dto.getData());
         m.setTipo(dto.getTipo());
+        m.setCategoria(dto.getCategoria() != null ? dto.getCategoria() : CategoriaManutencao.OUTROS);
         m.setPrestador(dto.getPrestador());
         m.setInstrucoesEmail(dto.getInstrucoesEmail());
         m = manutencaoRepository.save(m);
@@ -113,6 +121,7 @@ public class ManutencaoService {
         dto.setValor(m.getValor());
         dto.setData(m.getData());
         dto.setTipo(m.getTipo());
+        dto.setCategoria(m.getCategoria());
         dto.setPrestador(m.getPrestador());
         dto.setInstrucoesEmail(m.getInstrucoesEmail());
         dto.setCondominioId(m.getCondominio().getId());

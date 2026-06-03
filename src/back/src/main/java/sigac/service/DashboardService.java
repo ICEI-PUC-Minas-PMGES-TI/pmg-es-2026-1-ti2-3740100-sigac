@@ -1,6 +1,7 @@
 package sigac.service;
 
 import sigac.domain.Condominio;
+import sigac.domain.CategoriaManutencao;
 import sigac.domain.Funcionario;
 import sigac.domain.GastoProduto;
 import sigac.domain.Manutencao;
@@ -23,9 +24,11 @@ import java.time.Month;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -94,6 +97,7 @@ public class DashboardService {
 
         List<Manutencao> manutencoesMes = manutencaoRepository.findByCondominioIdAndDataBetween(condominioId, inicio, fim);
         List<ManutencaoResumoDTO> manutencoesDoMes = manutencoesMes.stream().map(this::toManutencaoResumo).collect(Collectors.toList());
+        List<IndicadorManutencaoCategoriaDTO> manutencoesPorCategoria = buildIndicadoresCategoria(manutencoesMes);
 
         List<Funcionario> funcionariosList = funcionarioRepository.findByCondominioId(condominioId);
         List<FuncionarioResumoDTO> funcionariosDto = funcionariosList.stream().map(this::toFuncionarioResumo).collect(Collectors.toList());
@@ -113,6 +117,7 @@ public class DashboardService {
         dto.setSaldoMes(saldoMes);
         dto.setItens(itens);
         dto.setManutencoesDoMes(manutencoesDoMes);
+        dto.setManutencoesPorCategoria(manutencoesPorCategoria);
         dto.setFuncionarios(funcionariosDto);
         dto.setGastosProdutosDoMes(gastosProdutosDoMes);
         return dto;
@@ -178,8 +183,29 @@ public class DashboardService {
         d.setData(m.getData());
         d.setValor(m.getValor());
         d.setTipo(m.getTipo());
+        d.setCategoria(m.getCategoria());
         d.setPrestador(m.getPrestador());
         return d;
+    }
+
+    private List<IndicadorManutencaoCategoriaDTO> buildIndicadoresCategoria(List<Manutencao> manutencoesMes) {
+        Map<CategoriaManutencao, List<Manutencao>> porCategoria = manutencoesMes.stream()
+                .collect(Collectors.groupingBy(
+                        m -> m.getCategoria() != null ? m.getCategoria() : CategoriaManutencao.OUTROS));
+
+        return Arrays.stream(CategoriaManutencao.values())
+                .filter(porCategoria::containsKey)
+                .map(categoria -> {
+                    List<Manutencao> itens = porCategoria.get(categoria);
+                    IndicadorManutencaoCategoriaDTO dto = new IndicadorManutencaoCategoriaDTO();
+                    dto.setCategoria(categoria);
+                    dto.setQuantidade(itens.size());
+                    dto.setValorTotal(itens.stream()
+                            .map(Manutencao::getValor)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     private FuncionarioResumoDTO toFuncionarioResumo(Funcionario f) {

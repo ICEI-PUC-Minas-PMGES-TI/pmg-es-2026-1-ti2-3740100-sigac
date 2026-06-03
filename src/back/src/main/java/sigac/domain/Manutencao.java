@@ -33,6 +33,10 @@ public class Manutencao {
     @Column(nullable = false)
     private TipoManutencao tipo;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CategoriaManutencao categoria;
+
     private String prestador;
 
     /** Texto exibido no e-mail como orientações/dicas para o morador (ex.: portão em modo manual - levar chave). */
@@ -53,6 +57,8 @@ public class Manutencao {
     public void setData(LocalDate data) { this.data = data; }
     public TipoManutencao getTipo() { return tipo; }
     public void setTipo(TipoManutencao tipo) { this.tipo = tipo; }
+    public CategoriaManutencao getCategoria() { return categoria; }
+    public void setCategoria(CategoriaManutencao categoria) { this.categoria = categoria; }
     public String getPrestador() { return prestador; }
     public void setPrestador(String prestador) { this.prestador = prestador; }
     public Condominio getCondominio() { return condominio; }

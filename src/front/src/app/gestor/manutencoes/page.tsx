@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wrench, Pencil, Trash2, Plus, Mail, ClipboardList, CheckCircle2, XCircle } from 'lucide-react';
 import { api, ManutencaoDTO, SolicitacaoManutencaoDTO } from '@/lib/api';
+import { categoriasManutencao, getCategoriaManutencaoLabel, getTipoManutencaoLabel } from '@/lib/manutencao';
 import { TableSkeleton } from '@/components/LoadingSpinner';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import { FormModal } from '@/components/FormModal';
@@ -28,13 +29,15 @@ export default function ManutencoesPage() {
   const now = useMemo(() => new Date(), []);
   const [anoFiltro, setAnoFiltro] = useState<number | 'todos'>('todos');
   const [mesFiltro, setMesFiltro] = useState<number | 'todos'>('todos');
+  const [categoriaFiltro, setCategoriaFiltro] = useState<'todas' | ManutencaoDTO['categoria']>('todas');
   const [showForm, setShowForm] = useState(false);
   const [solicitacaoPendenteId, setSolicitacaoPendenteId] = useState<number | null>(null);
   const [form, setForm] = useState({
     descricao: '',
     valor: '',
     data: new Date().toISOString().slice(0, 10),
-    tipo: 'PREVISTA' as 'PREVISTA' | 'EMERGENCIAL',
+    tipo: 'PREVISTA' as ManutencaoDTO['tipo'],
+    categoria: 'OUTROS' as ManutencaoDTO['categoria'],
     prestador: '',
     instrucoesEmail: '',
   });
@@ -44,7 +47,8 @@ export default function ManutencoesPage() {
     descricao: '',
     valor: '',
     data: '',
-    tipo: 'PREVISTA' as 'PREVISTA' | 'EMERGENCIAL',
+    tipo: 'PREVISTA' as ManutencaoDTO['tipo'],
+    categoria: 'OUTROS' as ManutencaoDTO['categoria'],
     prestador: '',
     instrucoesEmail: '',
   });
@@ -78,6 +82,7 @@ export default function ManutencoesPage() {
       valor: '',
       data: new Date().toISOString().slice(0, 10),
       tipo: 'PREVISTA',
+      categoria: 'OUTROS',
       prestador: '',
       instrucoesEmail: '',
     });
@@ -92,6 +97,7 @@ export default function ManutencoesPage() {
       valor: '',
       data: new Date().toISOString().slice(0, 10),
       tipo: 'PREVISTA',
+      categoria: s.categoria,
       prestador: '',
       instrucoesEmail: '',
     });
@@ -109,6 +115,7 @@ export default function ManutencoesPage() {
         valor: Number(form.valor),
         data: form.data,
         tipo: form.tipo,
+        categoria: form.categoria,
         prestador: form.prestador || undefined,
         instrucoesEmail: form.instrucoesEmail || undefined,
         condominioId: Number(condominioId),
@@ -118,7 +125,7 @@ export default function ManutencoesPage() {
         method: 'POST',
         body: JSON.stringify(body),
       });
-      setForm({ descricao: '', valor: '', data: new Date().toISOString().slice(0, 10), tipo: 'PREVISTA', prestador: '', instrucoesEmail: '' });
+      setForm({ descricao: '', valor: '', data: new Date().toISOString().slice(0, 10), tipo: 'PREVISTA', categoria: 'OUTROS', prestador: '', instrucoesEmail: '' });
       setSolicitacaoPendenteId(null);
       setShowForm(false);
       load();
@@ -134,6 +141,7 @@ export default function ManutencoesPage() {
       valor: String(m.valor),
       data: m.data.slice(0, 10),
       tipo: m.tipo,
+      categoria: m.categoria,
       prestador: m.prestador ?? '',
       instrucoesEmail: m.instrucoesEmail ?? '',
     });
@@ -152,6 +160,7 @@ export default function ManutencoesPage() {
           valor: Number(editForm.valor),
           data: editForm.data,
           tipo: editForm.tipo,
+          categoria: editForm.categoria,
           prestador: editForm.prestador || undefined,
           instrucoesEmail: editForm.instrucoesEmail || undefined,
           condominioId: Number(condominioId),
@@ -208,6 +217,7 @@ export default function ManutencoesPage() {
       const mm = d.getMonth() + 1;
       if (anoFiltro !== 'todos' && y !== anoFiltro) return false;
       if (mesFiltro !== 'todos' && mm !== mesFiltro) return false;
+      if (categoriaFiltro !== 'todas' && m.categoria !== categoriaFiltro) return false;
       return true;
     });
 
@@ -269,6 +279,19 @@ export default function ManutencoesPage() {
             ))}
           </select>
         </label>
+        <label className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-600">Categoria</span>
+          <select
+            className="input w-44 bg-white/90"
+            value={categoriaFiltro}
+            onChange={(e) => setCategoriaFiltro(e.target.value as 'todas' | ManutencaoDTO['categoria'])}
+          >
+            <option value="todas">Todas</option>
+            {categoriasManutencao.map((categoria) => (
+              <option key={categoria} value={categoria}>{getCategoriaManutencaoLabel(categoria)}</option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <AnimatePresence mode="wait">
@@ -304,7 +327,7 @@ export default function ManutencoesPage() {
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sigac-nav">{s.titulo}</p>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    {s.solicitanteNome} · {new Date(s.criadoEm).toLocaleString('pt-BR')}
+                    {s.solicitanteNome} · {getCategoriaManutencaoLabel(s.categoria)} · {new Date(s.criadoEm).toLocaleString('pt-BR')}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 shrink-0">
@@ -350,6 +373,11 @@ export default function ManutencoesPage() {
           <input className="input" placeholder="Descrição (ex: manutenção no portão)" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} required />
           <input type="number" step="0.01" min="0" className="input" placeholder="Valor (R$)" value={form.valor} onChange={(e) => setForm((f) => ({ ...f, valor: e.target.value }))} required />
           <input type="date" className="input" value={form.data} onChange={(e) => setForm((f) => ({ ...f, data: e.target.value }))} required />
+          <select className="input" value={form.categoria} onChange={(e) => setForm((f) => ({ ...f, categoria: e.target.value as ManutencaoDTO['categoria'] }))}>
+            {categoriasManutencao.map((categoria) => (
+              <option key={categoria} value={categoria}>{getCategoriaManutencaoLabel(categoria)}</option>
+            ))}
+          </select>
           <select className="input" value={form.tipo} onChange={(e) => setForm((f) => ({ ...f, tipo: e.target.value as 'PREVISTA' | 'EMERGENCIAL' }))}>
             <option value="PREVISTA">Prevista</option>
             <option value="EMERGENCIAL">Emergencial</option>
@@ -384,6 +412,11 @@ export default function ManutencoesPage() {
             <input className="input" placeholder="Descrição" value={editForm.descricao} onChange={(e) => setEditForm((f) => ({ ...f, descricao: e.target.value }))} required />
             <input type="number" step="0.01" min="0" className="input" placeholder="Valor (R$)" value={editForm.valor} onChange={(e) => setEditForm((f) => ({ ...f, valor: e.target.value }))} required />
             <input type="date" className="input" value={editForm.data} onChange={(e) => setEditForm((f) => ({ ...f, data: e.target.value }))} required />
+            <select className="input" value={editForm.categoria} onChange={(e) => setEditForm((f) => ({ ...f, categoria: e.target.value as ManutencaoDTO['categoria'] }))}>
+              {categoriasManutencao.map((categoria) => (
+                <option key={categoria} value={categoria}>{getCategoriaManutencaoLabel(categoria)}</option>
+              ))}
+            </select>
             <select className="input" value={editForm.tipo} onChange={(e) => setEditForm((f) => ({ ...f, tipo: e.target.value as 'PREVISTA' | 'EMERGENCIAL' }))}>
               <option value="PREVISTA">Prevista</option>
               <option value="EMERGENCIAL">Emergencial</option>
@@ -416,6 +449,7 @@ export default function ManutencoesPage() {
               <tr className="bg-gradient-to-r from-sigac-accent/10 to-sigac-accent/5 text-sigac-nav border-b border-slate-200">
                 <th className="text-left p-3 font-semibold rounded-tl-2xl">Data</th>
                 <th className="text-left p-3 font-semibold">Descrição</th>
+                <th className="text-left p-3 font-semibold">Categoria</th>
                 <th className="text-left p-3 font-semibold">Tipo</th>
                 <th className="text-left p-3 font-semibold">Prestador</th>
                 <th className="text-right p-3 font-semibold">Valor</th>
@@ -433,9 +467,10 @@ export default function ManutencoesPage() {
                 >
                   <td className="p-3 text-slate-700">{new Date(m.data).toLocaleDateString('pt-BR')}</td>
                   <td className="p-3 text-slate-600">{m.descricao}</td>
+                  <td className="p-3 text-slate-600">{getCategoriaManutencaoLabel(m.categoria)}</td>
                   <td className="p-3">
                     <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${m.tipo === 'EMERGENCIAL' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                      {m.tipo === 'EMERGENCIAL' ? 'Emergencial' : 'Prevista'}
+                      {getTipoManutencaoLabel(m.tipo)}
                     </span>
                   </td>
                   <td className="p-3 text-slate-600">{m.prestador ?? '—'}</td>

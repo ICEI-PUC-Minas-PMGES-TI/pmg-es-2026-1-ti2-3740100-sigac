@@ -4,7 +4,8 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { api, DashboardGastosDTO, FuncionarioDTO, ManutencaoDTO, GastoProdutoDTO } from '@/lib/api';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { getCategoriaManutencaoLabel, getTipoManutencaoLabel } from '@/lib/manutencao';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { DashboardSkeleton } from '@/components/LoadingSpinner';
 
 const COLORS = ['#1b3266', '#2f6ce6', '#0ea5e9', '#10b981', '#f59e0b'];
@@ -65,13 +66,30 @@ export default function SindicoDashboardPage() {
     ? data.manutencoesDoMes
     : manutencoesList
         .filter((m) => mesAnoMatch(m.data, ano, mes))
-        .map((m) => ({ id: m.id, descricao: m.descricao, data: m.data, valor: m.valor, tipo: m.tipo, prestador: m.prestador }));
+        .map((m) => ({ id: m.id, descricao: m.descricao, data: m.data, valor: m.valor, tipo: m.tipo, categoria: m.categoria, prestador: m.prestador }));
   const gastosProdutos = (data?.gastosProdutosDoMes && data.gastosProdutosDoMes.length > 0)
     ? data.gastosProdutosDoMes
     : gastosList
         .filter((g) => mesAnoMatch(g.data, ano, mes))
         .map((g) => ({ id: g.id, descricao: g.descricao, valor: g.valor, data: g.data, lojaFornecedor: g.lojaFornecedor }));
   const chartData = data?.itens?.map((i) => ({ name: i.categoria, value: i.valor })) ?? [];
+  const manutencoesPorCategoria = data?.manutencoesPorCategoria?.length
+    ? data.manutencoesPorCategoria
+    : Array.from(manutencoes.reduce((acc, item) => {
+        const atual = acc.get(item.categoria);
+        if (atual) {
+          atual.quantidade += 1;
+          atual.valorTotal += item.valor;
+        } else {
+          acc.set(item.categoria, { categoria: item.categoria, quantidade: 1, valorTotal: item.valor });
+        }
+        return acc;
+      }, new Map<string, { categoria: ManutencaoDTO['categoria']; quantidade: number; valorTotal: number }>()).values());
+  const manutencoesCategoriaChartData = manutencoesPorCategoria.map((item) => ({
+    categoria: getCategoriaManutencaoLabel(item.categoria),
+    quantidade: item.quantidade,
+    valorTotal: item.valorTotal,
+  }));
   const saldoNegativo = (data?.saldoMes ?? 0) < 0;
 
   return (
@@ -154,6 +172,35 @@ export default function SindicoDashboardPage() {
             </div>
           )}
 
+          {manutencoesPorCategoria.length > 0 && (
+            <section className="mb-6">
+              <h2 className="text-lg font-semibold text-sigac-nav mb-2">Indicador de manutenções por categoria</h2>
+              <div className="card p-4">
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={manutencoesCategoriaChartData} margin={{ top: 8, right: 16, bottom: 56, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis
+                      dataKey="categoria"
+                      angle={-25}
+                      textAnchor="end"
+                      interval={0}
+                      height={70}
+                      tick={{ fill: '#475569', fontSize: 12 }}
+                    />
+                    <YAxis allowDecimals={false} tick={{ fill: '#475569', fontSize: 12 }} />
+                    <Tooltip
+                      formatter={(value: number, name: string, payload) => {
+                        if (name === 'quantidade') return [`${value} manutenção(ões)`, 'Quantidade'];
+                        return [fmtMoney(Number(payload?.payload?.valorTotal ?? 0)), 'Valor total'];
+                      }}
+                    />
+                    <Bar dataKey="quantidade" name="quantidade" radius={[8, 8, 0, 0]} fill="#10b981" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+          )}
+
           <section className="mb-6">
             <h2 className="text-lg font-semibold text-sigac-nav mb-2">Funcionários e valores mensais</h2>
             <div className="card overflow-hidden p-0 rounded-2xl">
@@ -196,6 +243,7 @@ export default function SindicoDashboardPage() {
                       <tr className="bg-gradient-to-r from-emerald-50 to-emerald-50/50 text-emerald-800 border-b border-slate-200">
                         <th className="text-left p-3 font-semibold rounded-tl-2xl">Data</th>
                         <th className="text-left p-3 font-semibold">Descrição</th>
+                        <th className="text-left p-3 font-semibold">Categoria</th>
                         <th className="text-left p-3 font-semibold">Tipo</th>
                         <th className="text-left p-3 font-semibold">Prestador</th>
                         <th className="text-right p-3 font-semibold rounded-tr-2xl">Valor</th>
@@ -206,7 +254,8 @@ export default function SindicoDashboardPage() {
                         <tr key={m.id} className={`border-b border-slate-100 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-emerald-50/30`}>
                           <td className="p-3">{fmtDate(m.data)}</td>
                           <td className="p-3">{m.descricao}</td>
-                          <td className="p-3">{m.tipo === 'EMERGENCIAL' ? 'Emergencial' : 'Prevista'}</td>
+                          <td className="p-3">{getCategoriaManutencaoLabel(m.categoria)}</td>
+                          <td className="p-3">{getTipoManutencaoLabel(m.tipo)}</td>
                           <td className="p-3">{m.prestador ?? '—'}</td>
                           <td className="p-3 text-right font-medium text-sigac-nav">{fmtMoney(m.valor)}</td>
                         </tr>
@@ -262,6 +311,7 @@ Totais:
 • Funcionários: ${fmtMoney(data.totalFuncionarios)} (${funcionarios.length} funcionário(s))
 • Produtos: ${fmtMoney(data.totalProdutos)} (${gastosProdutos.length} lançamento(s))
 • Manutenções: ${fmtMoney(data.totalManutencoes)} (${manutencoes.length} manutenção(ões))
+• Categorias de manutenção: ${manutencoesPorCategoria.map((item) => `${getCategoriaManutencaoLabel(item.categoria)} (${item.quantidade})`).join(', ') || 'Sem registros'}
 • DESPESAS DO MÊS: ${fmtMoney(data.totalGeral)}
 • SALDO DO MÊS: ${fmtMoney(data.saldoMes)} (${saldoNegativo ? 'Prejuízo' : 'Lucro'})
 

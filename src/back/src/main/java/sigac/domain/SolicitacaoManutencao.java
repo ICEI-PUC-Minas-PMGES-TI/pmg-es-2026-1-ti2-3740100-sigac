@@ -22,6 +22,10 @@ public class SolicitacaoManutencao {
     @Column(nullable = false, length = 500)
     private String titulo;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CategoriaManutencao categoria;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "solicitante_id", nullable = false)
     private User solicitante;
@@ -40,6 +44,8 @@ public class SolicitacaoManutencao {
     public void setCondominio(Condominio condominio) { this.condominio = condominio; }
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
+    public CategoriaManutencao getCategoria() { return categoria; }
+    public void setCategoria(CategoriaManutencao categoria) { this.categoria = categoria; }
     public User getSolicitante() { return solicitante; }
     public void setSolicitante(User solicitante) { this.solicitante = solicitante; }
     public Instant getCriadoEm() { return criadoEm; }

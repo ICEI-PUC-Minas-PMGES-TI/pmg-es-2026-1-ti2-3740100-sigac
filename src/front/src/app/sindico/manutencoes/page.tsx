@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wrench, Send } from 'lucide-react';
 import { api, ManutencaoDTO } from '@/lib/api';
+import { categoriasManutencao, getCategoriaManutencaoLabel, getTipoManutencaoLabel } from '@/lib/manutencao';
 import { TableSkeleton } from '@/components/LoadingSpinner';
 import { FormModal } from '@/components/FormModal';
 
@@ -20,8 +21,10 @@ export default function SindicoManutencoesPage() {
   const now = useMemo(() => new Date(), []);
   const [anoFiltro, setAnoFiltro] = useState<number | 'todos'>(now.getFullYear());
   const [mesFiltro, setMesFiltro] = useState<number | 'todos'>(now.getMonth() + 1);
+  const [categoriaFiltro, setCategoriaFiltro] = useState<'todas' | ManutencaoDTO['categoria']>('todas');
   const [showSolic, setShowSolic] = useState(false);
   const [titulo, setTitulo] = useState('');
+  const [categoriaSolicitacao, setCategoriaSolicitacao] = useState<ManutencaoDTO['categoria']>('OUTROS');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,9 +46,10 @@ export default function SindicoManutencoesPage() {
     try {
       await api(`/condominios/${condominioId}/solicitacoes-manutencao`, {
         method: 'POST',
-        body: JSON.stringify({ titulo: titulo.trim() }),
+        body: JSON.stringify({ titulo: titulo.trim(), categoria: categoriaSolicitacao }),
       });
       setTitulo('');
+      setCategoriaSolicitacao('OUTROS');
       setShowSolic(false);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro ao enviar');
@@ -65,6 +69,7 @@ export default function SindicoManutencoesPage() {
       const mm = d.getMonth() + 1;
       if (anoFiltro !== 'todos' && y !== anoFiltro) return false;
       if (mesFiltro !== 'todos' && mm !== mesFiltro) return false;
+      if (categoriaFiltro !== 'todas' && m.categoria !== categoriaFiltro) return false;
       return true;
     });
 
@@ -127,6 +132,19 @@ export default function SindicoManutencoesPage() {
             ))}
           </select>
         </label>
+        <label className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-600">Categoria</span>
+          <select
+            className="input w-44 bg-white/90"
+            value={categoriaFiltro}
+            onChange={(e) => setCategoriaFiltro(e.target.value as 'todas' | ManutencaoDTO['categoria'])}
+          >
+            <option value="todas">Todas</option>
+            {categoriasManutencao.map((categoria) => (
+              <option key={categoria} value={categoria}>{getCategoriaManutencaoLabel(categoria)}</option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <AnimatePresence mode="wait">
@@ -160,6 +178,11 @@ export default function SindicoManutencoesPage() {
             maxLength={500}
             rows={4}
           />
+          <select className="input" value={categoriaSolicitacao} onChange={(e) => setCategoriaSolicitacao(e.target.value as ManutencaoDTO['categoria'])}>
+            {categoriasManutencao.map((categoria) => (
+              <option key={categoria} value={categoria}>{getCategoriaManutencaoLabel(categoria)}</option>
+            ))}
+          </select>
           <div className="flex gap-2 pt-2">
             <button type="submit" className="btn-primary" disabled={submitting}>
               {submitting ? 'Enviando...' : 'Enviar solicitação'}
@@ -176,6 +199,7 @@ export default function SindicoManutencoesPage() {
               <tr className="bg-gradient-to-r from-sigac-accent/10 to-sigac-accent/5 text-sigac-nav border-b border-slate-200">
                 <th className="text-left p-3 font-semibold rounded-tl-2xl">Data</th>
                 <th className="text-left p-3 font-semibold">Descrição</th>
+                <th className="text-left p-3 font-semibold">Categoria</th>
                 <th className="text-left p-3 font-semibold">Tipo</th>
                 <th className="text-left p-3 font-semibold">Prestador</th>
                 <th className="text-right p-3 font-semibold rounded-tr-2xl">Valor</th>
@@ -192,9 +216,10 @@ export default function SindicoManutencoesPage() {
                 >
                   <td className="p-3 text-slate-700">{new Date(m.data).toLocaleDateString('pt-BR')}</td>
                   <td className="p-3 text-slate-600">{m.descricao}</td>
+                  <td className="p-3 text-slate-600">{getCategoriaManutencaoLabel(m.categoria)}</td>
                   <td className="p-3">
                     <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${m.tipo === 'EMERGENCIAL' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                      {m.tipo === 'EMERGENCIAL' ? 'Emergencial' : 'Prevista'}
+                      {getTipoManutencaoLabel(m.tipo)}
                     </span>
                   </td>
                   <td className="p-3 text-slate-600">{m.prestador ?? '—'}</td>

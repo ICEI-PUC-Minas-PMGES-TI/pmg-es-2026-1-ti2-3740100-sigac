@@ -18,6 +18,7 @@ public class DashboardGastosDTO {
     private BigDecimal saldoMes;
     private List<ItemGastoDTO> itens;
     private List<ManutencaoResumoDTO> manutencoesDoMes;
+    private List<IndicadorManutencaoCategoriaDTO> manutencoesPorCategoria;
     private List<FuncionarioResumoDTO> funcionarios;
     private List<GastoProdutoResumoDTO> gastosProdutosDoMes;
 
@@ -43,6 +44,8 @@ public class DashboardGastosDTO {
     public void setItens(List<ItemGastoDTO> itens) { this.itens = itens; }
     public List<ManutencaoResumoDTO> getManutencoesDoMes() { return manutencoesDoMes; }
     public void setManutencoesDoMes(List<ManutencaoResumoDTO> manutencoesDoMes) { this.manutencoesDoMes = manutencoesDoMes; }
+    public List<IndicadorManutencaoCategoriaDTO> getManutencoesPorCategoria() { return manutencoesPorCategoria; }
+    public void setManutencoesPorCategoria(List<IndicadorManutencaoCategoriaDTO> manutencoesPorCategoria) { this.manutencoesPorCategoria = manutencoesPorCategoria; }
     public List<FuncionarioResumoDTO> getFuncionarios() { return funcionarios; }
     public void setFuncionarios(List<FuncionarioResumoDTO> funcionarios) { this.funcionarios = funcionarios; }
     public List<GastoProdutoResumoDTO> getGastosProdutosDoMes() { return gastosProdutosDoMes; }

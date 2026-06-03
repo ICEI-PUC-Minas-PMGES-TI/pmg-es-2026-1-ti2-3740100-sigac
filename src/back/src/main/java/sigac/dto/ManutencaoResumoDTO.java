@@ -1,5 +1,6 @@
 package sigac.dto;
 
+import sigac.domain.CategoriaManutencao;
 import sigac.domain.TipoManutencao;
 
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ public class ManutencaoResumoDTO {
     private LocalDate data;
     private BigDecimal valor;
     private TipoManutencao tipo;
+    private CategoriaManutencao categoria;
     private String prestador;
 
     public Long getId() { return id; }
@@ -23,6 +25,8 @@ public class ManutencaoResumoDTO {
     public void setValor(BigDecimal valor) { this.valor = valor; }
     public TipoManutencao getTipo() { return tipo; }
     public void setTipo(TipoManutencao tipo) { this.tipo = tipo; }
+    public CategoriaManutencao getCategoria() { return categoria; }
+    public void setCategoria(CategoriaManutencao categoria) { this.categoria = categoria; }
     public String getPrestador() { return prestador; }
     public void setPrestador(String prestador) { this.prestador = prestador; }
 }

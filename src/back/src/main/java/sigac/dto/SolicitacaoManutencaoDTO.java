@@ -1,8 +1,11 @@
 package sigac.dto;
 
+import sigac.domain.CategoriaManutencao;
+
 public class SolicitacaoManutencaoDTO {
     private Long id;
     private String titulo;
+    private CategoriaManutencao categoria;
     private Long condominioId;
     private String solicitanteNome;
     /** ISO-8601 instant string */
@@ -12,6 +15,8 @@ public class SolicitacaoManutencaoDTO {
     public void setId(Long id) { this.id = id; }
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
+    public CategoriaManutencao getCategoria() { return categoria; }
+    public void setCategoria(CategoriaManutencao categoria) { this.categoria = categoria; }
     public Long getCondominioId() { return condominioId; }
     public void setCondominioId(Long condominioId) { this.condominioId = condominioId; }
     public String getSolicitanteNome() { return solicitanteNome; }

@@ -56,8 +56,10 @@ public class EmailService {
         }
         boolean isEmergencial = manutencao.getTipo() == TipoManutencao.EMERGENCIAL;
         String tipo = isEmergencial ? "Emergencial" : "Prevista";
+        String categoria = formatCategoria(manutencao.getCategoria() == null ? null : manutencao.getCategoria().name());
         String assunto = "SIGAC - Manutenção " + tipo + " no condomínio " + nomeCondominio;
         String dataFormatada = manutencao.getData().format(DATA_BR);
+        String categoriaLinha = "<tr><td style=\"padding:10px 0 6px;color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;\">Categoria</td></tr><tr><td style=\"padding:0 0 16px;color:#0f172a;font-size:15px;font-weight:500;\">" + escapeHtml(categoria) + "</td></tr>";
         String prestadorLinha = manutencao.getPrestador() != null && !manutencao.getPrestador().isBlank()
                 ? "<tr><td style=\"padding:10px 0 6px;color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;\">Prestador</td></tr><tr><td style=\"padding:0 0 16px;color:#0f172a;font-size:15px;font-weight:500;\">" + escapeHtml(manutencao.getPrestador()) + "</td></tr>"
                 : "";
@@ -120,6 +122,7 @@ public class EmailService {
                           <td style="padding:0 0 4px;"><span style="display:inline-block;%s padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;">%s</span></td>
                         </tr>
                         %s
+                        %s
                       </table>
                     </td></tr>
                   </table>
@@ -139,6 +142,7 @@ public class EmailService {
                         dataFormatada,
                         badgeTipoCores,
                         tipo,
+                        categoriaLinha,
                         prestadorLinha,
                         instrucoes
                 );
@@ -173,8 +177,10 @@ public class EmailService {
         }
         boolean isEmergencial = manutencao.getTipo() == TipoManutencao.EMERGENCIAL;
         String tipo = isEmergencial ? "Emergencial" : "Prevista";
+        String categoria = formatCategoria(manutencao.getCategoria() == null ? null : manutencao.getCategoria().name());
         String assunto = "SIGAC - Alteração em manutenção - " + nomeCondominio;
         String dataFormatada = manutencao.getData().format(DATA_BR);
+        String categoriaLinha = "<tr><td style=\"padding:10px 0 6px;color:#64748b;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;\">Categoria</td></tr><tr><td style=\"padding:0 0 16px;color:#0f172a;font-size:15px;font-weight:500;\">" + escapeHtml(categoria) + "</td></tr>";
         String prestadorLinha = manutencao.getPrestador() != null && !manutencao.getPrestador().isBlank()
                 ? "<tr><td style=\"padding:10px 0 6px;color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;\">Prestador</td></tr><tr><td style=\"padding:0 0 16px;color:#0f172a;font-size:15px;font-weight:500;\">" + escapeHtml(manutencao.getPrestador()) + "</td></tr>"
                 : "";
@@ -219,6 +225,7 @@ public class EmailService {
                         <tr><td style="padding:0 0 4px;color:#64748b;font-size:11px;font-weight:600;text-transform:uppercase;">Tipo</td></tr>
                         <tr><td style="padding:0 0 4px;"><span style="display:inline-block;%s padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;">%s</span></td></tr>
                         %s
+                        %s
                       </table>
                     </td></tr>
                   </table>
@@ -232,7 +239,7 @@ public class EmailService {
             </body>
             </html>
             """
-                .formatted(escapeHtml(manutencao.getDescricao()), escapeHtml(nomeCondominio), dataFormatada, badgeTipoCores, tipo, prestadorLinha, instrucoes);
+                .formatted(escapeHtml(manutencao.getDescricao()), escapeHtml(nomeCondominio), dataFormatada, badgeTipoCores, tipo, categoriaLinha, prestadorLinha, instrucoes);
 
         try {
             for (String to : emails) {
@@ -483,5 +490,17 @@ public class EmailService {
     private static String escapeHtml(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    }
+
+    private static String formatCategoria(String categoria) {
+        if (categoria == null || categoria.isBlank()) return "Outros";
+        String[] partes = categoria.toLowerCase().split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String parte : partes) {
+            if (parte.isBlank()) continue;
+            if (sb.length() > 0) sb.append(' ');
+            sb.append(Character.toUpperCase(parte.charAt(0))).append(parte.substring(1));
+        }
+        return sb.toString();
     }
 }

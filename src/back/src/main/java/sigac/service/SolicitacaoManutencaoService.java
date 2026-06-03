@@ -46,6 +46,7 @@ public class SolicitacaoManutencaoService {
         SolicitacaoManutencao s = new SolicitacaoManutencao();
         s.setCondominio(condominio);
         s.setTitulo(request.getTitulo().trim());
+        s.setCategoria(request.getCategoria());
         s.setSolicitante(user);
         s = solicitacaoRepository.save(s);
         return toDTO(s);
@@ -83,6 +84,7 @@ public class SolicitacaoManutencaoService {
         SolicitacaoManutencaoDTO dto = new SolicitacaoManutencaoDTO();
         dto.setId(s.getId());
         dto.setTitulo(s.getTitulo());
+        dto.setCategoria(s.getCategoria());
         dto.setCondominioId(s.getCondominio().getId());
         dto.setSolicitanteNome(s.getSolicitante().getNome());
         dto.setCriadoEm(s.getCriadoEm().toString());

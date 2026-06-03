@@ -162,7 +162,11 @@ public class AvisoService {
 
     private String montarMensagemManutencao(Manutencao manutencao) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Está programada uma manutenção ")
+        sb.append("Está programada uma manutenção");
+        if (manutencao.getCategoria() != null) {
+            sb.append(" da categoria ").append(formatCategoria(manutencao.getCategoria().name()));
+        }
+        sb.append(" ")
                 .append(manutencao.getTipo() == null ? "no condomínio" : manutencao.getTipo().name().toLowerCase())
                 .append(" para o dia ")
                 .append(manutencao.getData().format(DATA_BR))
@@ -175,6 +179,19 @@ public class AvisoService {
         }
         if (manutencao.getInstrucoesEmail() != null && !manutencao.getInstrucoesEmail().isBlank()) {
             sb.append(" Orientações: ").append(manutencao.getInstrucoesEmail().trim());
+        }
+        return sb.toString();
+    }
+
+    private String formatCategoria(String categoria) {
+        if (categoria == null || categoria.isBlank()) return "Outros";
+        String[] partes = categoria.toLowerCase().split("_");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < partes.length; i++) {
+            String parte = partes[i];
+            if (parte.isBlank()) continue;
+            if (sb.length() > 0) sb.append(' ');
+            sb.append(Character.toUpperCase(parte.charAt(0))).append(parte.substring(1));
         }
         return sb.toString();
     }

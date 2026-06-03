@@ -151,12 +151,26 @@ export interface GastoProdutoDTO {
   condominioId: number;
 }
 
+export type TipoManutencao = 'PREVISTA' | 'EMERGENCIAL';
+export type CategoriaManutencao =
+  | 'JARDINAGEM'
+  | 'ELETRICA'
+  | 'HIDRAULICA'
+  | 'ELEVADOR'
+  | 'PINTURA'
+  | 'LIMPEZA'
+  | 'SEGURANCA'
+  | 'ESTRUTURAL'
+  | 'PISCINA'
+  | 'OUTROS';
+
 export interface ManutencaoDTO {
   id: number;
   descricao: string;
   valor: number;
   data: string;
-  tipo: 'PREVISTA' | 'EMERGENCIAL';
+  tipo: TipoManutencao;
+  categoria: CategoriaManutencao;
   prestador?: string;
   instrucoesEmail?: string;
   condominioId: number;
@@ -167,6 +181,7 @@ export interface ManutencaoDTO {
 export interface SolicitacaoManutencaoDTO {
   id: number;
   titulo: string;
+  categoria: CategoriaManutencao;
   condominioId: number;
   solicitanteNome: string;
   criadoEm: string;
@@ -181,8 +196,15 @@ export interface ManutencaoResumoDTO {
   descricao: string;
   data: string;
   valor: number;
-  tipo: 'PREVISTA' | 'EMERGENCIAL';
+  tipo: TipoManutencao;
+  categoria: CategoriaManutencao;
   prestador?: string;
+}
+
+export interface IndicadorManutencaoCategoriaDTO {
+  categoria: CategoriaManutencao;
+  quantidade: number;
+  valorTotal: number;
 }
 
 export interface FuncionarioResumoDTO {
@@ -212,6 +234,7 @@ export interface DashboardGastosDTO {
   saldoMes: number;
   itens: { categoria: string; valor: number }[];
   manutencoesDoMes: ManutencaoResumoDTO[];
+  manutencoesPorCategoria: IndicadorManutencaoCategoriaDTO[];
   funcionarios: FuncionarioResumoDTO[];
   gastosProdutosDoMes: GastoProdutoResumoDTO[];
 }
