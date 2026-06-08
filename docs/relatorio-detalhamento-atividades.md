@@ -2,7 +2,7 @@
 
 ## Introdução
 
-Este relatório consolida todas as tarefas de usuário dos 5 processos BPMN do **Sistema Integrado de Gestão e Administração Condominial (SIGAC)**. Para cada processo, são apresentados: a identificação das tarefas, os atores responsáveis e o detalhamento dos campos e comandos.
+Este relatório consolida todas as tarefas de usuário dos 5 processos BPMN do **Sistema Integrado de Gestão e Administração Condominial (SIGAC)**. Para cada processo, são apresentados: a identificação das tarefas, os atores envolvidos, o detalhamento dos campos e comandos, além do modelo de dados relacional.
 
 **Total de processos:** 5  
 **Total de tarefas de usuário:** 22
@@ -434,12 +434,25 @@ Este relatório consolida todas as tarefas de usuário dos 5 processos BPMN do *
 
 ---
 
+## Indicadores de Desempenho (KPIs)
+
+Os indicadores abaixo foram definidos de forma alinhada aos nomes exatos dos processos do SIGAC e sem alterar o detalhamento das atividades já documentadas.
+
+| **Indicador** | **Objetivo** | **Descrição** | **Fonte de dados** | **Fórmula de cálculo** |
+| --- | --- | --- | --- | --- |
+| Taxa de manutenções concluídas | Medir a eficiência do processo **Gestão de Manutenção** | Percentual de manutenções finalizadas em relação ao total de manutenções registradas no período | Tabela `manutencao` | (número de manutenções com status_atual = 'Finalizado' / número total de manutenções) * 100 |
+| Tempo médio de resolução de manutenção | Avaliar a agilidade do processo **Gestão de Manutenção** | Mede o tempo médio entre a abertura da manutenção e seu fechamento | Tabela `manutencao` | soma da diferença entre `data_fecho` e `created_at` / número de manutenções finalizadas |
+| Saldo financeiro do período | Acompanhar o desempenho do processo **Gestão Financeira (Receitas e Despesas)** | Diferença entre o total de receitas e o total de despesas registradas no período | Tabelas `receita` e `despesa` | soma dos valores de receita - soma dos valores de despesa |
+| Índice de inadimplência | Monitorar o controle financeiro do processo **Gestão Financeira (Receitas e Despesas)** | Percentual de receitas previstas que não foram recebidas até a data esperada no período analisado | Tabela `receita` | (número de receitas não recebidas no prazo / número total de receitas previstas) * 100 |
+
+---
+
 ## Modelo de Dados Relacional
 
 > **Ajuste solicitado (atores do BPMN no modelo relacional):**
 > - Foi introduzida a entidade base **`usuario`** e uma estratégia de **herança (table-per-subclass)** para **`admin`**, **`gestor`** e **`sindico`**.
 > - Foi adicionada a entidade **`inquilino`** com apenas **nome** e **email**, conforme solicitado.
-> - As tabelas **`condominio`**, **`validacao_cadastro`**, **`prestador`**, **`manutencao`**, **`receita`**, **`despesa`**, **`relatorio_financeiro`** e **`aviso`** foram ajustadas para referenciar usuários quando aplicável (auditoria/autor).
+> - As tabelas **`condominio`**, **`validacao_cadastro`**, **`prestador`**, **`manutencao`**, **`receita`**, **`despesa`**, **`relatorio_financeiro`** e **`aviso`** foram ajustadas para referenciar corretamente os atores dos processos.
 >
 > Observação: optou-se por **herança table-per-subclass** (tabela `usuario` + tabelas filhas com a mesma PK), pois é uma forma comum em SQL para representar herança.
 
