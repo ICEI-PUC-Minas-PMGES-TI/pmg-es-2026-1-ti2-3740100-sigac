@@ -436,7 +436,7 @@ Este relatório consolida todas as tarefas de usuário dos 5 processos BPMN do *
 
 ## Indicadores de Desempenho (KPIs)
 
-Os indicadores abaixo foram definidos de forma alinhada aos nomes exatos dos processos do SIGAC e sem alterar o detalhamento das atividades já documentadas.
+Os indicadores abaixo foram definidos de forma alinhada aos nomes dos processos do SIGAC.
 
 | **Indicador** | **Objetivo** | **Descrição** | **Fonte de dados** | **Fórmula de cálculo** |
 | --- | --- | --- | --- | --- |
