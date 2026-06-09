@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { api, apiFormData, DashboardGastosDTO, FuncionarioDTO, ManutencaoDTO, GastoProdutoDTO } from '@/lib/api';
 import { getCategoriaManutencaoLabel, getTipoManutencaoLabel } from '@/lib/manutencao';
+import { buildMonthlyReportPdf } from '@/lib/monthly-report-pdf';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { DashboardSkeleton } from '@/components/LoadingSpinner';
 import { FormModal } from '@/components/FormModal';
@@ -125,117 +126,24 @@ export default function GestorDashboardPage() {
 
   const gerarPdfBlob = useCallback(async (): Promise<{ blob: Blob; filename: string }> => {
     if (!data) throw new Error('Sem dados para o período.');
-    const { funcionarios, manutencoes, gastosProdutos } = relatorioRows;
-    const { jsPDF } = await import('jspdf');
-    const autoTable = (await import('jspdf-autotable')).default;
+    const storedUser = typeof window !== 'undefined' ? window.localStorage.getItem('sigac_user') : null;
+    let requestedBy: { nome?: string; role?: 'GESTOR' | 'SINDICO' | 'SIGAC_ADMIN' } | null = null;
+    if (storedUser) {
+      try {
+        requestedBy = JSON.parse(storedUser) as { nome?: string; role?: 'GESTOR' | 'SINDICO' | 'SIGAC_ADMIN' };
+      } catch {
+        requestedBy = null;
+      }
+    }
 
-    const doc = new jsPDF('p', 'mm', 'a4');
-
-    const descricaoPeriodo = `${new Date(ano, mes - 1).toLocaleString('pt-BR', {
-      month: 'long',
-    })}/${ano}`;
-
-    doc.setFontSize(16);
-    doc.setTextColor(27, 50, 102);
-    doc.text('SIGAC - Relatório financeiro do condomínio', 14, 20);
-
-    doc.setFontSize(12);
-    doc.setTextColor(80, 80, 80);
-    doc.text(`Condomínio: ${data.nomeCondominio}`, 14, 30);
-    doc.text(`Período: ${descricaoPeriodo}`, 14, 37);
-    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 44);
-
-    let posY = 54;
-
-    doc.setFontSize(13);
-    doc.setTextColor(27, 50, 102);
-    doc.text('Resumo do mês', 14, posY);
-    posY += 6;
-
-    doc.setFontSize(11);
-    doc.setTextColor(60, 60, 60);
-    doc.text(`Arrecadação: ${fmtMoney(data.totalArrecadado)}`, 14, posY);
-    posY += 5;
-    doc.text(`Funcionários: ${fmtMoney(data.totalFuncionarios)}`, 14, posY);
-    posY += 5;
-    doc.text(`Produtos: ${fmtMoney(data.totalProdutos)}`, 14, posY);
-    posY += 5;
-    doc.text(`Manutenções: ${fmtMoney(data.totalManutencoes)}`, 14, posY);
-    posY += 5;
-    doc.setFontSize(12);
-    doc.setTextColor(220, 38, 38);
-    doc.text(`DESPESAS DO MÊS: ${fmtMoney(data.totalGeral)}`, 14, posY);
-    posY += 6;
-    doc.setFontSize(12);
-    if ((data.saldoMes ?? 0) < 0) doc.setTextColor(220, 38, 38);
-    else doc.setTextColor(16, 185, 129);
-    doc.text(`SALDO DO MÊS: ${fmtMoney(data.saldoMes)}`, 14, posY);
-
-    posY += 12;
-    doc.setFontSize(12);
-    doc.setTextColor(27, 50, 102);
-    doc.text('Funcionários', 14, posY);
-    posY += 6;
-    autoTable(doc, {
-      startY: posY,
-      head: [['Nome', 'Função', 'Valor mensal (R$)']],
-      body: funcionarios.map((f) => [
-        f.nome,
-        f.funcao,
-        fmtMoney(f.valorMensal),
-      ]),
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [27, 50, 102], textColor: 255 },
-      alternateRowStyles: { fillColor: [245, 248, 255] },
-      margin: { left: 14, right: 14 },
+    return buildMonthlyReportPdf({
+      data,
+      relatorioRows,
+      ano,
+      mes,
+      requestedBy,
+      generatedAt: new Date(),
     });
-
-    let afterFuncY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
-    doc.setFontSize(12);
-    doc.setTextColor(27, 50, 102);
-    doc.text('Manutenções', 14, afterFuncY);
-    afterFuncY += 6;
-    autoTable(doc, {
-      startY: afterFuncY,
-      head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Prestador', 'Valor (R$)']],
-      body: manutencoes.map((m) => [
-        fmtDate(m.data),
-        m.descricao,
-        getCategoriaManutencaoLabel(m.categoria),
-        getTipoManutencaoLabel(m.tipo),
-        m.prestador ?? '—',
-        fmtMoney(m.valor),
-      ]),
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [16, 185, 129], textColor: 255 },
-      alternateRowStyles: { fillColor: [240, 253, 250] },
-      margin: { left: 14, right: 14 },
-    });
-
-    let afterManutY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
-    doc.setFontSize(12);
-    doc.setTextColor(27, 50, 102);
-    doc.text('Gastos', 14, afterManutY);
-    afterManutY += 6;
-    autoTable(doc, {
-      startY: afterManutY,
-      head: [['Data', 'Descrição', 'Loja/Fornecedor', 'Valor (R$)']],
-      body: gastosProdutos.map((g) => [
-        fmtDate(g.data),
-        g.descricao ?? '—',
-        g.lojaFornecedor ?? '—',
-        fmtMoney(g.valor),
-      ]),
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [14, 165, 233], textColor: 255 },
-      alternateRowStyles: { fillColor: [239, 246, 255] },
-      margin: { left: 14, right: 14 },
-    });
-
-    const nomeArquivoBase = `relatorio-financeiro-${data.nomeCondominio.replace(/\s+/g, '-').toLowerCase()}-${ano}-${String(mes).padStart(2, '0')}`;
-    const filename = `${nomeArquivoBase}.pdf`;
-    const blob = doc.output('blob') as Blob;
-    return { blob, filename };
   }, [data, relatorioRows, ano, mes]);
 
   const handleBaixarRelatorio = async () => {
