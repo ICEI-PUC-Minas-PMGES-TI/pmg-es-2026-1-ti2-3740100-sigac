@@ -2,7 +2,7 @@
 
 **Nome do Processo:** Gestão de Manutenção
 
-![Gestão Manutenção](images/Manutencao.png)
+![Gestão Manutenção](images/ProcessoManutencao.png)
 
 **Oportunidades de melhoria:**
 
