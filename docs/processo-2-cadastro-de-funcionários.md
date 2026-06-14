@@ -1,6 +1,6 @@
 ### 3.3.2 Processo 2 – Cadastro de Funcionários
 
-![Cadastro de funcionários](images/Funcionario.png)
+![Cadastro de funcionários](images/ProcessoCadastroFuncionario.png)
 
 
 **Nome do Processo (UI):** Cadastro de Funcionários
