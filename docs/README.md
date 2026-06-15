@@ -99,6 +99,8 @@ As principais propostas de melhoria são:
 
 [PROCESSO 5 - Gestão de avisos ](processo-5-gestão-de-avisos.md "Detalhamento do Processo 5.")
 
+[PROCESSO 6 - Cadastro de Inquilinos ](processo-6-cadastro-de-inquilinos.md "Detalhamento do Processo 6.")
+
 ## 4. Projeto da solução
 
 _O documento a seguir apresenta o detalhamento do projeto da solução. São apresentadas duas seções que descrevem, respectivamente: modelo relacional e tecnologias._
