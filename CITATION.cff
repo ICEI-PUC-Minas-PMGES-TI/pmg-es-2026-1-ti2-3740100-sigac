@@ -16,14 +16,18 @@ authors:
   - family-names: Cardoso
     given-names: Milena
     email: mile.araujocar@gmail.com
+  - name-suffix: Professor
+    affiliation: PUC Minas
+    family-names: Soares de Paiva Lacerda
+    given-names: Lucca
+  - name-suffix: Professor
+    affiliation: PUC Minas
+    family-names: da Silva
+    given-names: Luiz Carlos
   - name-suffix: Professora
     affiliation: PUC Minas
-    family-names: Alonso Veloso
-    given-names: Eveline
-  - name-suffix: Professora
-    affiliation: PUC Minas
-    family-names: Baroni De Carvalho
-    given-names: Juliana Amaral
+    family-names: Hanne Soares de Andrade
+    given-names: Michelle
 keywords:
   - gestão condominial
   - sistema web
