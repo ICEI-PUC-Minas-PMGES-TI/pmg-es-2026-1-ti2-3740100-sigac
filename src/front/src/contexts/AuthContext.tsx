@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, AuthResponse, Role } from '@/lib/api';
+import { getApiBaseUrl } from '@/lib/api-config';
 
 interface AuthContextType {
   user: AuthResponse | null;
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     // Login sem enviar token (evita 403 por token antigo/inválido)
-    const base = typeof window !== 'undefined' ? '/api-back' : 'http://localhost:8080';
+    const base = getApiBaseUrl();
     let res: Response;
     try {
       res = await fetch(`${base}/auth/login`, {

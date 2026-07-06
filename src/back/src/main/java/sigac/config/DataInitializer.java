@@ -3,11 +3,14 @@ package sigac.config;
 import sigac.domain.Role;
 import sigac.domain.User;
 import sigac.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Value;
 
+/**
+ * Garante o usuário admin padrão do SIGAC (admin@sigac.com / admin123 por padrão).
+ */
 @Component
 public class DataInitializer implements CommandLineRunner {
 
@@ -20,6 +23,9 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${sigac.admin.password:}")
     private String adminPassword;
 
+    @Value("${sigac.admin.ensure-credentials:false}")
+    private boolean ensureCredentials;
+
     public DataInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -27,16 +33,28 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Cria usuário administrador inicial apenas se e-mail e senha forem configurados via propriedades.
-        if (adminEmail != null && !adminEmail.isBlank()
-                && adminPassword != null && !adminPassword.isBlank()
-                && userRepository.findByEmail(adminEmail).isEmpty()) {
-            User admin = new User();
-            admin.setNome("SIGAC Admin");
-            admin.setEmail(adminEmail);
-            admin.setPassword(passwordEncoder.encode(adminPassword));
-            admin.setRole(Role.SIGAC_ADMIN);
-            userRepository.save(admin);
+        if (adminEmail == null || adminEmail.isBlank()
+                || adminPassword == null || adminPassword.isBlank()) {
+            return;
         }
+
+        userRepository.findByEmail(adminEmail).ifPresentOrElse(
+                existing -> {
+                    if (ensureCredentials) {
+                        existing.setNome("SIGAC Admin");
+                        existing.setRole(Role.SIGAC_ADMIN);
+                        existing.setPassword(passwordEncoder.encode(adminPassword));
+                        userRepository.save(existing);
+                    }
+                },
+                () -> {
+                    User admin = new User();
+                    admin.setNome("SIGAC Admin");
+                    admin.setEmail(adminEmail);
+                    admin.setPassword(passwordEncoder.encode(adminPassword));
+                    admin.setRole(Role.SIGAC_ADMIN);
+                    userRepository.save(admin);
+                }
+        );
     }
 }

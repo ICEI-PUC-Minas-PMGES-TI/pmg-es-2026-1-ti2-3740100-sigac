@@ -1,0 +1,23 @@
+spring:
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  datasource:
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  h2:
+    console:
+      enabled: false
+
+server:
+  port: ${PORT:8080}
+
+sigac:
+  admin:
+    ensure-credentials: true
+  cors:
+    allowed-origins: ${SIGAC_CORS_ALLOWED_ORIGINS:https://sigac.vercel.app}

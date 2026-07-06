@@ -1,0 +1,55 @@
+# SIGAC — Blueprint Render (backend) + instruções Vercel (frontend)
+#
+# Ordem recomendada:
+# 1) Deploy do FRONT na Vercel (passo A)
+# 2) Copie a URL gerada (ex.: https://sigac-xxx.vercel.app)
+# 3) Substitua SIGAC_CORS_ALLOWED_ORIGINS neste arquivo pela URL do front
+# 4) Deploy do BACK no Render via Blueprint (passo B)
+# 5) Copie a URL do back (ex.: https://sigac-api.onrender.com)
+# 6) Na Vercel, configure API_URL com a URL do back e redeploy (passo C)
+
+databases:
+  - name: sigac-db
+    plan: free
+    databaseName: sigac
+    user: sigac
+
+services:
+  - type: web
+    name: sigac-api
+    runtime: java
+    region: oregon
+    plan: free
+    rootDir: src/back
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -Dserver.port=$PORT -jar target/sigac-1.0.0-SNAPSHOT.jar
+    healthCheckPath: /health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JAVA_VERSION
+        value: "17"
+      # ▼ SUBSTITUA pela URL do front na Vercel (sem barra no final)
+      - key: SIGAC_CORS_ALLOWED_ORIGINS
+        value: https://SUBSTITUA-URL-DO-VERCEL.vercel.app
+      - key: SIGAC_ADMIN_EMAIL
+        value: admin@sigac.com
+      - key: SIGAC_ADMIN_PASSWORD
+        value: admin123
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sigac-db
+          property: connectionString
+      # E-mail (opcional — avisos/relatórios). Configure no painel Render se for usar.
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false

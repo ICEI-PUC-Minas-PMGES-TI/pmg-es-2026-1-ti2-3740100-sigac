@@ -1,4 +1,6 @@
-const API_BASE = typeof window !== 'undefined' ? '/api-back' : 'http://localhost:8080/api';
+import { getApiBaseUrl } from '@/lib/api-config';
+
+const API_BASE = getApiBaseUrl();
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
