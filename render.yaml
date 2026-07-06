@@ -31,7 +31,7 @@ services:
         value: "17"
       # ▼ SUBSTITUA pela URL do front na Vercel (sem barra no final)
       - key: SIGAC_CORS_ALLOWED_ORIGINS
-        value: https://SUBSTITUA-URL-DO-VERCEL.vercel.app
+        value: https://sigac-beta.vercel.app
       - key: SIGAC_ADMIN_EMAIL
         value: admin@sigac.com
       - key: SIGAC_ADMIN_PASSWORD
