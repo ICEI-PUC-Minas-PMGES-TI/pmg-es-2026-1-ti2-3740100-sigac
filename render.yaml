@@ -17,19 +17,15 @@ databases:
 services:
   - type: web
     name: sigac-api
-    runtime: java
+    runtime: docker
     region: oregon
     plan: free
-    rootDir: src/back
-    buildCommand: mvn clean package -DskipTests
-    startCommand: java -Dserver.port=$PORT -jar target/sigac-1.0.0-SNAPSHOT.jar
+    dockerfilePath: ./src/back/Dockerfile
+    dockerContext: ./src/back
     healthCheckPath: /health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
-      - key: JAVA_VERSION
-        value: "17"
-      # ▼ SUBSTITUA pela URL do front na Vercel (sem barra no final)
       - key: SIGAC_CORS_ALLOWED_ORIGINS
         value: https://sigac-beta.vercel.app
       - key: SIGAC_ADMIN_EMAIL
@@ -42,7 +38,6 @@ services:
         fromDatabase:
           name: sigac-db
           property: connectionString
-      # E-mail (opcional — avisos/relatórios). Configure no painel Render se for usar.
       - key: MAIL_HOST
         value: smtp.gmail.com
       - key: MAIL_PORT

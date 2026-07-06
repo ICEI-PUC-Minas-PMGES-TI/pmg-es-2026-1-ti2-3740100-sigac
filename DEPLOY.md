@@ -30,7 +30,7 @@ O backend recria/garante esse usuário ao subir em produção (`SIGAC_ADMIN_ENSU
    - Em `SIGAC_CORS_ALLOWED_ORIGINS`, troque `https://SUBSTITUA-URL-DO-VERCEL.vercel.app` pela URL real do passo A.
 4. Aplique o blueprint. Serão criados:
    - Banco PostgreSQL `sigac-db`
-   - Web Service `sigac-api` (Java 17 / Spring Boot)
+   - Web Service `sigac-api` (Docker + Spring Boot / Java 17)
 5. Aguarde o deploy e copie a URL do serviço, por exemplo: `https://sigac-api.onrender.com`
 6. Teste: `https://sigac-api.onrender.com/health` deve retornar `{"status":"ok"}`.
 
