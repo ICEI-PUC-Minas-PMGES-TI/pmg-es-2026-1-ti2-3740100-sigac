@@ -5,6 +5,8 @@ Este projeto propõe o desenvolvimento de um sistema web (SIGAC) para otimizar e
 ## Como rodar
 Link do sistema:
 https://sigac-beta.vercel.app/
+##Link Video
+https://1drv.ms/v/c/315dba19662999e2/IQA-bZHyMR1UQ6WBV5BJ9LQoAYDrv444pvzh8Xjz21AZ6Ng?e=MszrzB
 
 ### Backend (Java)
 
